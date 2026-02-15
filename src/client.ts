@@ -88,9 +88,11 @@ export class UnifiedClient extends EventEmitter {
   private createProvider(platform: PlatformType, config: DiscordConfig | RootConfig | RootAppConfig): PlatformProvider {
     switch (platform.toLowerCase()) {
       case 'discord':
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call
         return new DiscordProvider(config as DiscordConfig);
       
       case 'root':
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call
         return new RootProvider(config as RootConfig);
       
       case 'root-app':

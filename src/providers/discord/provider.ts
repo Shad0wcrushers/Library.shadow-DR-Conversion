@@ -16,7 +16,8 @@ function requireDiscordJS(): DiscordModule {
       );
     }
     try {
-      discordModule = require('discord.js');
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      discordModule = require('discord.js') as DiscordModule;
     } catch (error) {
       throw new Error(
         'Discord provider requires discord.js to be installed.\n' +
@@ -25,7 +26,7 @@ function requireDiscordJS(): DiscordModule {
       );
     }
   }
-  return discordModule!;
+  return discordModule;
 }
 
 import type { Client, Message as DiscordMessage } from 'discord.js';
@@ -57,7 +58,7 @@ export class DiscordProvider extends BaseProvider {
     this.client = new DiscordClient({
       intents,
       ...config.clientOptions
-    }) as any;
+    }) as Client;
     
     // Setup event listeners
     this.setupEventListeners();

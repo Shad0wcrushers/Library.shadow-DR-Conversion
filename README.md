@@ -51,6 +51,34 @@ npm install @rootsdk/client-app
 
 You only need to install the SDK for the platform(s) you're targeting. The library will show helpful error messages if a required dependency is missing.
 
+### 🎯 Interactive Setup Wizard
+
+New to the library? Use the interactive setup wizard to install only what you need:
+
+```bash
+npx library.dr-conversion setup
+```
+
+The wizard will:
+- Let you choose your target platform(s)
+- Install only the required dependencies
+- Show you next steps for getting started
+
+**Or initialize a complete project:**
+
+```bash
+# Create a new Discord bot project
+npx library.dr-conversion init -p discord -n my-discord-bot
+
+# Create a new Root bot project
+npx library.dr-conversion init -p root -n my-root-bot
+
+# Create a new Root app project
+npx library.dr-conversion init -p root-app -n my-root-app
+```
+
+This creates a fully configured project with TypeScript, example code, and environment variables ready to go!
+
 ### Basic Usage
 
 ```typescript
@@ -530,6 +558,13 @@ const client = new UnifiedClient({
 **Security note:** Debug and Info logs may contain sensitive information (tokens, user IDs, message content). Production mode automatically prevents this by limiting logs to warnings and errors. This is especially important for Discord bots to comply with Discord's data privacy guidelines.
 
 ## 📖 Documentation
+
+### Complete Documentation
+
+- 📘 **[Setup Guide](docs/SETUP.md)** - Interactive setup wizard and CLI tools
+- 📗 **[API Reference](API.md)** - Detailed API documentation
+- 📙 **[Migration Guide](docs/MIGRATION.md)** - Upgrade and migration guides
+- 📕 **[Contributing Guide](CONTRIBUTING.md)** - How to contribute
 
 ### Creating Rich Messages
 
