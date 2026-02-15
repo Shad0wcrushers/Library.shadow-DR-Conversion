@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Build script for chat-platform-bridge
+# Build script for Library@DR-Conversion-v0.1.0
 # Ensures clean build and validates output
 
 set -e

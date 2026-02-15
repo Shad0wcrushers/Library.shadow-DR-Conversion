@@ -11,7 +11,7 @@ We release patches for security vulnerabilities. Currently supported versions:
 
 ## Reporting a Vulnerability
 
-If you discover a security vulnerability within chat-platform-bridge, please send an email to security@example.com. All security vulnerabilities will be promptly addressed.
+If you discover a security vulnerability within Library@DR-Conversion-v0.1.0, please send an email to security@example.com. All security vulnerabilities will be promptly addressed.
 
 Please include the following information:
 
@@ -31,7 +31,7 @@ Please include the following information:
 
 ## Security Best Practices
 
-When using chat-platform-bridge:
+When using Library@DR-Conversion-v0.1.0:
 
 1. **Never commit bot tokens** to version control
 2. **Use environment variables** for sensitive configuration

@@ -1,6 +1,6 @@
 /**
  * Unified client for multi-platform chat bot development
- * Main entry point for the chat-platform-bridge library
+ * Main entry point for the Library@DR-Conversion-v0.1.0 library
  */
 
 import { EventEmitter } from 'events';

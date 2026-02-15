@@ -160,8 +160,8 @@ export class RootWebSocketClient extends EventEmitter {
         token: this.config.token,
         properties: {
           os: process.platform,
-          browser: 'chat-platform-bridge',
-          device: 'chat-platform-bridge',
+          browser: 'Library@DR-Conversion-v0.1.0',
+          device: 'Library@DR-Conversion-v0.1.0',
         },
       },
     };

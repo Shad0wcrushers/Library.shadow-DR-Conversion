@@ -17,7 +17,7 @@ export class RootHTTPClient {
     this.headers = {
       'Authorization': `Bot ${this.token}`,
       'Content-Type': 'application/json',
-      'User-Agent': 'chat-platform-bridge/1.0.0',
+      'User-Agent': 'Library@DR-Conversion-v0.1.0/0.1.0',
     };
   }
 

@@ -1,10 +1,10 @@
 # Implementation Guide
 
-This document provides a comprehensive overview of the chat-platform-bridge implementation and how to use, extend, and maintain it.
+This document provides a comprehensive overview of the Library@DR-Conversion-v0.1.0 implementation and how to use, extend, and maintain it.
 
 ## 🎯 Overview
 
-chat-platform-bridge is a TypeScript library that provides a unified interface for building chat bots across multiple platforms. The architecture is designed around three core concepts:
+Library@DR-Conversion-v0.1.0 is a TypeScript library that provides a unified interface for building chat bots across multiple platforms. The architecture is designed around three core concepts:
 
 1. **Generic Types**: Platform-agnostic interfaces (Message, User, Channel, etc.)
 2. **Platform Providers**: Platform-specific implementations that adhere to a common interface
@@ -13,7 +13,7 @@ chat-platform-bridge is a TypeScript library that provides a unified interface f
 ## 📁 Project Structure
 
 ```
-chat-platform-bridge/
+Library@DR-Conversion-v0.1.0/
 ├── src/
 │   ├── client.ts                    # UnifiedClient - main entry point
 │   ├── index.ts                     # Public API exports

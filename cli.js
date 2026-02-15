@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * CLI tool for chat-platform-bridge
+ * CLI tool for Library@DR-Conversion-v0.1.0
  * Provides utilities for bot development
  */
 
@@ -10,9 +10,9 @@ const fs = require('fs');
 const path = require('path');
 
 program
-  .name('chat-platform-bridge')
-  .description('CLI tools for chat-platform-bridge')
-  .version('1.0.0');
+  .name('Library@DR-Conversion-v0.1.0')
+  .description('CLI tools for Library@DR-Conversion-v0.1.0')
+  .version('0.1.0');
 
 program
   .command('init')
@@ -43,7 +43,7 @@ program
         dev: 'ts-node src/index.ts',
       },
       dependencies: {
-        'chat-platform-bridge': '^1.0.0',
+        'Library@DR-Conversion-v0.1.0': '^0.1.0',
       },
       devDependencies: {
         typescript: '^5.3.0',
@@ -100,7 +100,7 @@ dist/
     
     // Create main bot file
     const botCode = options.platform === 'discord'
-      ? `import { UnifiedClient } from 'chat-platform-bridge';
+      ? `import { UnifiedClient } from 'Library@DR-Conversion-v0.1.0';
 
 const client = new UnifiedClient({
   platform: 'discord',
@@ -123,7 +123,7 @@ client.on('message', async (message) => {
 
 client.connect();
 `
-      : `import { UnifiedClient } from 'chat-platform-bridge';
+      : `import { UnifiedClient } from 'Library@DR-Conversion-v0.1.0';
 
 const client = new UnifiedClient({
   platform: 'root',
@@ -171,8 +171,8 @@ program
     
     const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
     
-    if (!pkg.dependencies || !pkg.dependencies['chat-platform-bridge']) {
-      console.error('❌ chat-platform-bridge not found in dependencies');
+    if (!pkg.dependencies || !pkg.dependencies['Library@DR-Conversion-v0.1.0']) {
+      console.error('❌ Library@DR-Conversion-v0.1.0 not found in dependencies');
       process.exit(1);
     }
     

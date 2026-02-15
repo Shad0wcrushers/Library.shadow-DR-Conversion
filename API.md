@@ -1,17 +1,17 @@
 # API Quick Reference
 
-Quick reference guide for the chat-platform-bridge API.
+Quick reference guide for the Library@DR-Conversion-v0.1.0 API.
 
 ## 🚀 Installation
 
 ```bash
-npm install chat-platform-bridge discord.js
+npm install Library@DR-Conversion-v0.1.0 discord.js
 ```
 
 ## 📝 Basic Setup
 
 ```typescript
-import { UnifiedClient, LogLevel } from 'chat-platform-bridge';
+import { UnifiedClient, LogLevel } from 'Library@DR-Conversion-v0.1.0';
 
 const client = new UnifiedClient({
   platform: 'discord', // or 'root'
@@ -399,7 +399,7 @@ import {
   RateLimitError,
   ConnectionError,
   ConfigurationError
-} from 'chat-platform-bridge';
+} from 'Library@DR-Conversion-v0.1.0';
 ```
 
 ## 🪵 Logging
@@ -407,7 +407,7 @@ import {
 ### Setting Log Level
 
 ```typescript
-import { LogLevel } from 'chat-platform-bridge';
+import { LogLevel } from 'Library@DR-Conversion-v0.1.0';
 
 // In constructor
 const client = new UnifiedClient({
@@ -433,7 +433,7 @@ client.setLogLevel(LogLevel.INFO);
 ### Accessing Platform-Specific Client
 
 ```typescript
-import { DiscordProvider } from 'chat-platform-bridge';
+import { DiscordProvider } from 'Library@DR-Conversion-v0.1.0';
 
 const provider = client.getProvider() as DiscordProvider;
 const discordClient = provider.getClient();

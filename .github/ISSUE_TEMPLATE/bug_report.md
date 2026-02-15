@@ -31,7 +31,7 @@ Paste the full error message here
 **Environment:**
  - OS: [e.g. Windows 11, Ubuntu 22.04]
  - Node version: [e.g. 18.16.0]
- - chat-platform-bridge version: [e.g. 1.0.0]
+ - Library@DR-Conversion-v0.1.0 version: [e.g. 0.1.0]
  - Platform: [e.g. Discord, Root]
  - Platform SDK version: [e.g. discord.js 14.14.1]
 

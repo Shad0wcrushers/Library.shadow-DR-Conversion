@@ -63,7 +63,7 @@ client.on('message', async (message: Message) => {
           { name: 'Author', value: message.author.username, inline: true }
         ],
         footer: {
-          text: 'Powered by chat-platform-bridge'
+          text: 'Powered by Library@DR-Conversion-v0.1.0'
         },
         timestamp: new Date()
       }]

@@ -2,10 +2,10 @@
 
 > Unified interface for building multi-platform chat bots
 
-[![npm version](https://badge.fury.io/js/chat-platform-bridge.svg)](https://www.npmjs.com/package/chat-platform-bridge)
+[![npm version](https://badge.fury.io/js/Library@DR-Conversion-v0.1.0.svg)](https://www.npmjs.com/package/Library@DR-Conversion-v0.1.0)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-**chat-platform-bridge** is a TypeScript library that provides a unified, platform-agnostic interface for building chat bots that work across multiple platforms like Discord, Root, and potentially others. Write your bot logic once, and deploy it anywhere!
+**Library@DR-Conversion-v0.1.0** is a TypeScript library that provides a unified, platform-agnostic interface for building chat bots that work across multiple platforms like Discord, Root, and potentially others. Write your bot logic once, and deploy it anywhere!
 
 ## ✨ Features
 
@@ -30,13 +30,13 @@
 ### Installation
 
 ```bash
-npm install chat-platform-bridge discord.js
+npm install Library@DR-Conversion-v0.1.0 discord.js
 ```
 
 ### Basic Usage
 
 ```typescript
-import { UnifiedClient } from 'chat-platform-bridge';
+import { UnifiedClient } from 'Library@DR-Conversion-v0.1.0';
 
 // Create a client (works with any platform!)
 const client = new UnifiedClient({
@@ -59,7 +59,7 @@ await client.connect();
 
 ### Switching Platforms
 
-The beauty of chat-platform-bridge is that switching platforms is as simple as changing one line:
+The beauty of Library@DR-Conversion-v0.1.0 is that switching platforms is as simple as changing one line:
 
 ```typescript
 // Discord bot
@@ -92,7 +92,7 @@ await client.sendMessage(channelId, {
       { name: 'Field 2', value: 'Value 2', inline: true }
     ],
     footer: {
-      text: 'Powered by chat-platform-bridge'
+      text: 'Powered by Library@DR-Conversion-v0.1.0'
     },
     timestamp: new Date()
   }]
@@ -188,7 +188,7 @@ DISCORD_TOKEN=your-token ts-node examples/discord-bot.ts
 ### Project Structure
 
 ```
-chat-platform-bridge/
+Library@DR-Conversion-v0.1.0/
 ├── src/
 │   ├── client.ts                    # UnifiedClient (main entry point)
 │   ├── types/
@@ -249,7 +249,7 @@ chat-platform-bridge/
 ### Custom Logging
 
 ```typescript
-import { UnifiedClient, LogLevel } from 'chat-platform-bridge';
+import { UnifiedClient, LogLevel } from 'Library@DR-Conversion-v0.1.0';
 
 const client = new UnifiedClient({
   platform: 'discord',
@@ -266,7 +266,7 @@ client.setLogLevel(LogLevel.INFO);
 While the goal is platform-agnostic code, sometimes you need platform-specific features:
 
 ```typescript
-import { DiscordProvider } from 'chat-platform-bridge';
+import { DiscordProvider } from 'Library@DR-Conversion-v0.1.0';
 
 const client = new UnifiedClient({
   platform: 'discord',
@@ -292,7 +292,7 @@ import {
   UnsupportedPlatformError,
   AuthenticationError,
   ResourceNotFoundError 
-} from 'chat-platform-bridge';
+} from 'Library@DR-Conversion-v0.1.0';
 
 client.on('message', async (message) => {
   try {
