@@ -1,15 +1,18 @@
 /**
  * Root-Specific Bot Example
  * 
- * This example demonstrates using the UnifiedClient for the Root platform.
- * Note: Root provider is currently a stub. Complete the implementation
- * in src/providers/root/ for this example to work.
+ * This example demonstrates using the UnifiedClient for the Root platform
+ * with automatic community detection.
+ * 
+ * Root's SDK automatically detects which community your bot is connected to.
+ * No manual communityId configuration needed!
  * 
  * Usage:
  *   ROOT_TOKEN=your-token npm start
  */
 
 import { UnifiedClient, Message, LogLevel } from '../src';
+import { RootProvider } from '../src/providers/root/provider';
 
 const token = process.env.ROOT_TOKEN;
 
@@ -18,27 +21,34 @@ if (!token) {
   process.exit(1);
 }
 
-// Create Root client
+// Create Root client - community is auto-detected!
 const client = new UnifiedClient({
   platform: 'root',
   config: {
-    token,
-    // Add other Root-specific config here
+    token
+    // No communityId needed - automatically detected when bot starts!
   },
   logLevel: LogLevel.DEBUG
 });
 
-// Ready event
-client.on('ready', () => {
+// Ready event - now includes community info!
+client.on('ready', (info?: any) => {
   console.log(`✅ Root bot is ready!`);
   console.log(`Platform: ${client.platformName} v${client.platformVersion}`);
+  
+  // Get the connected community ID
+  const provider = client.getProvider() as RootProvider;
+  const communityId = provider.getCommunityId();
+  console.log(`📍 Connected to community: ${communityId || 'detecting...'}`);
 });
 
 // Message handler
 client.on('message', async (message: Message) => {
   if (message.author.bot) return;
   
-  console.log(`[${message.channel.name}] ${message.author.username}: ${message.content}`);
+  // Community ID is available in message metadata
+  const communityId = message.metadata?.communityId;
+  console.log(`[Community: ${communityId}] [${message.channel.name}] ${message.author.username}: ${message.content}`);
   
   // Echo command
   if (message.content.startsWith('!echo ')) {

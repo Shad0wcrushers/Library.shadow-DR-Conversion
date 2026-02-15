@@ -98,51 +98,104 @@ client.on('message', async (message) => {
 });
 ```
 
-### 🔄 Multi-Instance Usage (Root Communities)
+### 🔄 Automatic Multi-Community Support (Root)
 
-**Important for Root developers:** Root's architecture spins up separate server-side instances for each community. The library mirrors this design - each `UnifiedClient` connects to **one Root community**.
+**Great news!** The library now **automatically detects** which Root community your bot is connected to. No manual configuration needed!
 
-To manage multiple Root communities, create multiple client instances:
+#### How It Works
+
+When your bot starts, Root's infrastructure automatically configures it for a specific community. The library detects this automatically:
 
 ```typescript
-// Bot connected to multiple Root communities
-const community1Bot = new UnifiedClient({
+// Simple setup - works for any community!
+const bot = new UnifiedClient({
   platform: 'root',
   config: { 
-    token: process.env.ROOT_TOKEN,
-    communityId: 'community-1-id'
+    token: process.env.ROOT_TOKEN
+    // No communityId needed - automatically detected!
   }
 });
 
-const community2Bot = new UnifiedClient({
-  platform: 'root',
-  config: { 
-    token: process.env.ROOT_TOKEN,
-    communityId: 'community-2-id'
+bot.on('message', (msg) => {
+  // Community ID is available in message metadata
+  console.log(`Message from community: ${msg.metadata?.communityId}`);
+  
+  if (msg.content === '!ping') {
+    msg.reply('Pong!');
   }
 });
 
-// Each instance operates independently
-community1Bot.on('message', (msg) => {
-  console.log('Message from Community 1');
-});
-
-community2Bot.on('message', (msg) => {
-  console.log('Message from Community 2');
-});
-
-await community1Bot.connect();
-await community2Bot.connect();
+await bot.connect();
 ```
 
-This pattern also works for running the same bot across **different platforms simultaneously**:
+#### Multi-Community Deployment
+
+**On Root's Infrastructure:**
+- ✅ Automatic! Root spins up one bot instance per community
+- ✅ Each instance auto-detects its community
+- ✅ No manual configuration required
+- ✅ Same code works for all communities
+
+**On External Infrastructure** (your own servers):
+- Root's SDK connects to one community per Node.js process
+- For multiple communities, run multiple Node.js processes
+- Each process connects to one community automatically
 
 ```typescript
-const discordBot = new UnifiedClient({ platform: 'discord', config: { token: DISCORD_TOKEN } });
-const rootBot = new UnifiedClient({ platform: 'root', config: { token: ROOT_TOKEN } });
+// External hosting - one bot instance handles one community
+// Root SDK automatically connects to the community configured in Root's infrastructure
+const bot = new UnifiedClient({
+  platform: 'root',
+  config: { token: process.env.ROOT_TOKEN }
+});
+
+await bot.connect();
+// The bot is now connected to whichever community Root configured it for
+
+// Access community ID programmatically
+const provider = bot.getProvider() as RootProvider;
+const communityId = provider.getCommunityId();
+console.log(`Connected to community: ${communityId}`);
+```
+
+#### Accessing Community Information
+
+You can access the community ID from messages or directly from the provider:
+
+```typescript
+import { RootProvider } from 'library.dr-conversion';
+
+// In message handler
+bot.on('message', (msg) => {
+  const communityId = msg.metadata?.communityId;
+  console.log(`Message from community: ${communityId}`);
+});
+
+// Or get it from the provider
+const provider = bot.getProvider() as RootProvider;
+const communityId = provider.getCommunityId();
+```
+
+#### Cross-Platform Bots
+
+You can run the same bot across **different platforms simultaneously**:
+
+```typescript
+const discordBot = new UnifiedClient({ 
+  platform: 'discord', 
+  config: { token: process.env.DISCORD_TOKEN } 
+});
+
+const rootBot = new UnifiedClient({ 
+  platform: 'root', 
+  config: { token: process.env.ROOT_TOKEN } 
+});
 
 // Same message handler shared across both platforms
 const handleMessage = async (message) => {
+  // Check which platform the message came from
+  console.log(`Message from ${message.platform}: ${message.content}`);
+  
   if (message.content === '!ping') {
     await message.reply('Pong!');
   }
@@ -157,7 +210,7 @@ await rootBot.connect();
 
 ### ⚠️ Deployment Considerations for Root Apps
 
-**Important:** When deploying an app to Root's infrastructure, Root clones your server-side code and runs one instance per community. Be mindful of which platforms your code connects to:
+**Important:** When deploying an app to Root's infrastructure, Root automatically clones your server-side code and runs one instance per community. Be mindful of which platforms your code connects to:
 
 ```typescript
 // ❌ DON'T: This would start BOTH Root and Discord bots when installed to Root

@@ -42,6 +42,9 @@ export interface Message {
   /** Array of mentioned users */
   mentions?: User[];
   
+  /** Platform-specific metadata (e.g., community ID for Root) */
+  metadata?: Record<string, unknown>;
+  
   /**
    * Reply to this message
    * @param content String content or rich message options

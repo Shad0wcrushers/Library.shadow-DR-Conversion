@@ -42,6 +42,10 @@ export function convertMessageToGeneric(rootMsg: ChannelMessage, provider: RootP
     },
     timestamp: new Date(), // Root SDK doesn't provide createdAt in ChannelMessage
     platform: 'root',
+    // Add community context to messages
+    metadata: {
+      communityId: provider.getCommunityId()
+    },
     embeds: [],
     attachments: rootMsg.messageUris && rootMsg.messageUris.length > 0
       ? rootMsg.messageUris.map(uri => ({

@@ -46,6 +46,7 @@ import {
  */
 export class RootProvider extends BaseProvider {
   private client: RootServer;
+  private connectedCommunityId?: string;
   readonly platformName = 'root';
   readonly platformVersion = '1.0.0';
   
@@ -60,9 +61,17 @@ export class RootProvider extends BaseProvider {
     this.client = rootServer;
     
     this.logger.info('Root provider initialized with @rootsdk/server-bot');
+    this.logger.info('Note: Root SDK connects to one community per process. Root infrastructure handles multi-instance automatically.');
     
     // Setup event listeners
     this.setupEventListeners();
+  }
+  
+  /**
+   * Get the currently connected community ID
+   */
+  getCommunityId(): string | undefined {
+    return this.connectedCommunityId;
   }
   
   /**
@@ -308,16 +317,32 @@ export class RootProvider extends BaseProvider {
   
   /**
    * Connect to Root
+   * Automatically detects the community this instance is connected to
    */
   async connect(): Promise<void> {
     try {
       this.logger.info('Connecting to Root...');
       
-      // Start the Root bot lifecycle
-      await this.client.lifecycle.start();
+      // Start the Root bot lifecycle with callback to capture community ID
+      await this.client.lifecycle.start((startState) => {
+        this.connectedCommunityId = startState.communityId;
+        this.logger.info(`Connected to Root community: ${this.connectedCommunityId}`);
+        
+        // Log community info
+        if (startState.communityRoles) {
+          this.logger.debug(`Community has ${startState.communityRoles.size} roles`);
+        }
+        if (startState.communityMembers) {
+          this.logger.debug(`Community has ${startState.communityMembers.size} members`);
+        }
+        
+        return Promise.resolve();
+      });
       
       this._isConnected = true;
-      this.emitGenericEvent('ready');
+      
+      // Emit ready event with community context
+      this.emitGenericEvent('ready', { communityId: this.connectedCommunityId });
       
       this.logger.info('Connected to Root successfully');
     } catch (error) {
