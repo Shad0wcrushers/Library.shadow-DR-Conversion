@@ -1,5 +1,5 @@
 /**
- * Library@DR-Conversion v0.1.0
+ * Library.DR-Conversion v0.1.0
  * Unified interface for building multi-platform chat bots
  * 
  * @packageDocumentation

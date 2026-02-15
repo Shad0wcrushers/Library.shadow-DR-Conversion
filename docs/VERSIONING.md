@@ -1,6 +1,6 @@
 # Versioning Guide
 
-This document explains the versioning strategy for Library@DR-Conversion.
+This document explains the versioning strategy for Library.DR-Conversion.
 
 ## Semantic Versioning
 
@@ -80,7 +80,7 @@ npm publish --tag beta
 
 Users can install with:
 ```bash
-npm install Library@DR-Conversion@beta
+npm install Library.DR-Conversion@beta
 ```
 
 ## Version Tags

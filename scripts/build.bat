@@ -1,5 +1,5 @@
 @echo off
-REM Build script for Library@DR-Conversion (Windows)
+REM Build script for Library.DR-Conversion (Windows)
 REM Ensures clean build and validates output
 
 echo 🧹 Cleaning previous build...

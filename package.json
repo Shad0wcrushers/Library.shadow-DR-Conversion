@@ -85,6 +85,6 @@
     "CHANGELOG.md"
   ],
   "bin": {
-    "Library@DR-Conversion": "./cli.js"
+    "Library.DR-Conversion": "./cli.js"
   }
 }

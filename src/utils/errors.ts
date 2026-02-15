@@ -1,5 +1,5 @@
 /**
- * Custom error classes for the Library@DR-Conversion library
+ * Custom error classes for the Library.DR-Conversion library
  */
 
 /**

@@ -2,10 +2,10 @@
 
 > Unified interface for building multi-platform chat bots
 
-[![npm version](https://badge.fury.io/js/Library@DR-Conversion.svg)](https://www.npmjs.com/package/Library@DR-Conversion)
+[![npm version](https://badge.fury.io/js/Library.DR-Conversion.svg)](https://www.npmjs.com/package/Library.DR-Conversion)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-**Library@DR-Conversion** (v0.1.0) is a TypeScript library that provides a unified, platform-agnostic interface for building chat bots that work across multiple platforms like Discord, Root, and potentially others. Write your bot logic once, and deploy it anywhere!
+**Library.DR-Conversion** (v0.1.0) is a TypeScript library that provides a unified, platform-agnostic interface for building chat bots that work across multiple platforms like Discord, Root, and potentially others. Write your bot logic once, and deploy it anywhere!
 
 ## ✨ Features
 
@@ -30,13 +30,13 @@
 ### Installation
 
 ```bash
-npm install Library@DR-Conversion
+npm install Library.DR-Conversion
 ```
 
 ### Basic Usage
 
 ```typescript
-import { UnifiedClient } from 'Library@DR-Conversion';
+import { UnifiedClient } from 'Library.DR-Conversion';
 
 // Create a client (works with any platform!)
 const client = new UnifiedClient({
@@ -59,7 +59,7 @@ await client.connect();
 
 ### Switching Platforms
 
-The beauty of Library@DR-Conversion is that switching platforms is as simple as changing one line:
+The beauty of Library.DR-Conversion is that switching platforms is as simple as changing one line:
 
 ```typescript
 // Discord bot
@@ -92,7 +92,7 @@ await client.sendMessage(channelId, {
       { name: 'Field 2', value: 'Value 2', inline: true }
     ],
     footer: {
-      text: 'Powered by Library@DR-Conversion v0.1.0'
+      text: 'Powered by Library.DR-Conversion v0.1.0'
     },
     timestamp: new Date()
   }]
@@ -188,7 +188,7 @@ DISCORD_TOKEN=your-token ts-node examples/discord-bot.ts
 ### Project Structure
 
 ```
-Library@DR-Conversion/
+Library.DR-Conversion/
 ├── src/
 │   ├── client.ts                    # UnifiedClient (main entry point)
 │   ├── types/
@@ -249,7 +249,7 @@ Library@DR-Conversion/
 ### Custom Logging
 
 ```typescript
-import { UnifiedClient, LogLevel } from 'Library@DR-Conversion';
+import { UnifiedClient, LogLevel } from 'Library.DR-Conversion';
 
 const client = new UnifiedClient({
   platform: 'discord',
@@ -266,7 +266,7 @@ client.setLogLevel(LogLevel.INFO);
 While the goal is platform-agnostic code, sometimes you need platform-specific features:
 
 ```typescript
-import { DiscordProvider } from 'Library@DR-Conversion';
+import { DiscordProvider } from 'Library.DR-Conversion';
 
 const client = new UnifiedClient({
   platform: 'discord',

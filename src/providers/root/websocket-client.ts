@@ -160,8 +160,8 @@ export class RootWebSocketClient extends EventEmitter {
         token: this.config.token,
         properties: {
           os: process.platform,
-          browser: 'Library@DR-Conversion',
-          device: 'Library@DR-Conversion',
+          browser: 'Library.DR-Conversion',
+          device: 'Library.DR-Conversion',
         },
       },
     };

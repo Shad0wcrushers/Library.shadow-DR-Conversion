@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.1.0] - 2026-02-15
 
 ### Added
-- Initial release of Library@DR-Conversion v0.1.0
+- Initial release of Library.DR-Conversion v0.1.0
 - UnifiedClient for platform-agnostic bot development
 - Full Discord support via discord.js integration
 - Root platform provider stub (ready for implementation)
