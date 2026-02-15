@@ -19,6 +19,7 @@
     "typecheck": "tsc --noEmit",
     "dev": "tsc --watch",
     "setup": "node cli.js setup",
+    "generate-manifest": "node cli.js generate-manifest",
     "example:simple": "ts-node examples/simple-bot.ts",
     "example:discord": "ts-node examples/discord-bot.ts",
     "example:root": "ts-node examples/root-bot.ts",

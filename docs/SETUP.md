@@ -168,6 +168,55 @@ const client = new UnifiedClient({
 // Access to Root UI components, theme detection, etc.
 ```
 
+**Note**: Root Apps (client-side) don't require manifest files. They're configured through the Root platform's interface. See official Root documentation for Root App deployment.
+
+### Root Bot (Server-side)
+
+Root Bots require a `root-manifest.json` file to define deployment configuration and permissions:
+
+```typescript
+import { UnifiedClient } from 'library.dr-conversion';
+
+const client = new UnifiedClient({
+  platform: 'root',
+  config: {
+    token: process.env.ROOT_TOKEN!
+  }
+});
+
+client.on('ready', (data) => {
+  console.log('Bot is ready!');
+  console.log('Connected to community:', data.communityId);
+});
+```
+
+**📋 Root Bot Manifest Required**
+
+Root Bots need a `root-manifest.json` file to define:
+- Unique bot ID (UUID format)
+- Version number
+- Deployment configuration (launch file, deploy folders)
+- Required permissions
+- Community settings
+
+**Generate with CLI:**
+```bash
+# Quick generation with defaults
+npx library.dr-conversion generate-manifest
+
+# Interactive mode with guided prompts
+npx library.dr-conversion generate-manifest -i
+```
+
+The `init` command automatically creates a template manifest for you. You can also use the `generate-manifest` command to create or regenerate the manifest at any time.
+
+See the [Root Bot Manifest Guide](ROOT_APP_MANIFEST.md) for complete documentation on:
+- Required and optional manifest fields
+- Permission types
+- Settings configuration
+- Validation and troubleshooting
+- Publishing with Root SDK CLI
+
 ## 🔄 Switching Platforms
 
 One of the key benefits of Library.DR-Conversion is the ability to switch platforms with minimal code changes:
@@ -212,6 +261,18 @@ npx library.dr-conversion init -p <platform> -n <name>
 ```
 - `-p, --platform`: Platform type (discord, root, root-app)
 - `-n, --name`: Project name
+
+### generate-manifest
+Generate a Root Bot manifest file
+```bash
+npx library.dr-conversion generate-manifest
+# or with interactive mode
+npx library.dr-conversion generate-manifest -i
+```
+- Generates `root-manifest.json` with proper UUID
+- Interactive mode guides you through configuration
+- Sets up version, launch file, and permissions
+- See [Root Bot Manifest Guide](ROOT_APP_MANIFEST.md) for details
 
 ### validate
 Validate your bot configuration

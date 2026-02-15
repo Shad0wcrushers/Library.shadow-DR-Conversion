@@ -10,11 +10,49 @@ const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
 const readline = require('readline');
+const crypto = require('crypto');
+
+// Generate a UUID v4
+function generateUUID() {
+  return crypto.randomUUID();
+}
+
+// Detect platform from package.json dependencies
+function detectPlatform() {
+  try {
+    const pkgPath = path.join(process.cwd(), 'package.json');
+    if (!fs.existsSync(pkgPath)) {
+      return null;
+    }
+    
+    const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
+    const allDeps = {
+      ...pkg.dependencies,
+      ...pkg.devDependencies,
+      ...pkg.peerDependencies
+    };
+    
+    // Check for Root platforms
+    if (allDeps['@rootsdk/server-bot']) {
+      return 'root';
+    }
+    if (allDeps['@rootsdk/client-app']) {
+      return 'root-app';
+    }
+    if (allDeps['discord.js']) {
+      return 'discord';
+    }
+    
+    return null;
+  } catch (error) {
+    return null;
+  }
+}
 
 program
   .name('library.dr-conversion')
-  .description('CLI tools for Library.DR-Conversion v0.2.8')
-  .version('0.2.8');
+  .description('CLI tools for Library.DR-Conversion v0.2.9')
+  .version('0.2.9');
 
 program
   .command('init')
@@ -192,12 +230,72 @@ client.connect();
     
     fs.writeFileSync(path.join(projectDir, 'src', 'index.ts'), botCode);
     
+    // Create root-manifest.json for Root Bots
+    if (options.platform === 'root') {
+      const manifest = {
+        id: generateUUID(),
+        version: '1.0.0',
+        package: {
+          server: {
+            launch: 'dist/index.js',
+            deploy: ['dist'],
+            node_modules: ['node_modules']
+          }
+        },
+        settings: {
+          groups: []
+        },
+        permissions: {
+          community: {},
+          channel: {
+            CreateMessage: true,
+            ReadMessage: true
+          }
+        }
+      };
+      
+      fs.writeFileSync(
+        path.join(projectDir, 'root-manifest.json'),
+        JSON.stringify(manifest, null, 2)
+      );
+      
+      // Create README explaining manifest
+      const manifestReadme = `# Root Bot Manifest
+
+Your bot's root-manifest.json defines how it integrates with Root.
+
+## Important:
+- The 'id' field is unique to your bot - don't change it after publishing
+- Update 'version' following semantic versioning when you make changes
+- Add permissions your bot needs to 'permissions.community' or 'permissions.channel'
+- See docs/ROOT_BOT_MANIFEST.md for full documentation
+
+## Publishing:
+\`\`\`bash
+npm run build
+npx @rootsdk/cli publish
+\`\`\`
+`;
+      fs.writeFileSync(path.join(projectDir, 'MANIFEST.md'), manifestReadme);
+    }
+    
     console.log(`✅ Created ${options.name}`);
     console.log(`\n📝 Next steps:`);
     console.log(`  cd ${options.name}`);
     console.log(`  npm install`);
-    console.log(`  cp .env.example .env`);
-    console.log(`  # Edit .env with your bot token`);
+    
+    if (options.platform === 'root') {
+      console.log(`  cp .env.example .env`);
+      console.log(`  # Edit .env with your bot token`);
+      console.log(`  # Edit root-manifest.json - change the 'id' to a unique value`);
+      console.log(`  # See MANIFEST.md for manifest documentation`);
+    } else if (options.platform === 'discord') {
+      console.log(`  cp .env.example .env`);
+      console.log(`  # Edit .env with your bot token`);
+    } else if (options.platform === 'root-app') {
+      console.log(`  # Root Apps run in the Root client - no token needed`);
+      console.log(`  # Configure your app in the Root platform`);
+    }
     console.log(`  npm run dev`);
   });
 
@@ -224,6 +322,201 @@ program
     }
     
     console.log('✅ Configuration is valid');
+  });
+
+program
+  .command('generate-manifest')
+  .description('Generate a manifest file for Root Bots or Root Apps (auto-detects platform)')
+  .option('-i, --interactive', 'Interactive mode with prompts')
+  .option('-p, --platform <type>', 'Platform type (root, root-app) - auto-detected if not specified')
+  .action(async (options) => {
+    // Auto-detect platform if not specified
+    const platform = options.platform || detectPlatform();
+    
+    if (!platform || (platform !== 'root' && platform !== 'root-app')) {
+      console.error('❌ Could not detect Root platform.');
+      console.error('   Make sure you have @rootsdk/server-bot or @rootsdk/client-app installed,');
+      console.error('   or specify the platform: --platform root or --platform root-app');
+      process.exit(1);
+    }
+    
+    const isRootBot = platform === 'root';
+    const manifestFile = isRootBot ? 'root-manifest.json' : 'root-app-manifest.json';
+    
+    console.log(`\n🔍 Detected platform: ${isRootBot ? 'Root Bot (server-side)' : 'Root App (client-side)'}`);
+    
+    // Check if manifest already exists
+    if (fs.existsSync(manifestFile)) {
+      console.log(`⚠️  ${manifestFile} already exists in this directory.`);
+      if (!options.interactive) {
+        console.log('Use --interactive to configure a new one anyway.');
+        return;
+      }
+    }
+    
+    let manifest;
+    
+    if (isRootBot) {
+      // Root Bot manifest (server-side)
+      manifest = {
+        id: generateUUID(),
+        version: '1.0.0',
+        package: {
+          server: {
+            launch: 'dist/index.js',
+            deploy: ['dist'],
+            node_modules: ['node_modules']
+          }
+        },
+        settings: {
+          groups: []
+        },
+        permissions: {
+          community: {},
+          channel: {}
+        }
+      };
+    } else {
+      // Root App manifest (client-side)
+      manifest = {
+        id: generateUUID(),
+        version: '1.0.0',
+        name: '',
+        description: '',
+        author: '',
+        homepage: '',
+        permissions: {
+          channel: {}
+        }
+      };
+    }
+    
+    if (options.interactive) {
+      const rl = readline.createInterface({
+        input: process.stdin,
+        output: process.stdout
+      });
+      
+      function question(prompt) {
+        return new Promise((resolve) => {
+          rl.question(prompt, resolve);
+        });
+      }
+      
+      console.log('\n╔════════════════════════════════════════════════════════╗');
+      console.log(`║   Root ${isRootBot ? 'Bot' : 'App'} Manifest Generator${' '.repeat(isRootBot ? 25 : 24)}║`);
+      console.log('╚════════════════════════════════════════════════════════╝\n');
+      
+      // Version
+      const version = await question('Version (default: 1.0.0): ');
+      if (version.trim()) manifest.version = version.trim();
+      
+      if (isRootBot) {
+        // Root Bot specific fields
+        // Launch file
+        const launch = await question('Launch file (default: dist/index.js): ');
+        if (launch.trim()) manifest.package.server.launch = launch.trim();
+        
+        // Permissions
+        console.log('\n📋 Bot Permissions:\n');
+        console.log('Community permissions:');
+      } else {
+        // Root App specific fields
+        const name = await question('App name: ');
+        if (name.trim()) manifest.name = name.trim();
+        
+        const description = await question('App description: ');
+        if (description.trim()) manifest.description = description.trim();
+        
+        const author = await question('Author: ');
+        if (author.trim()) manifest.author = author.trim();
+        
+        const homepage = await question('Homepage URL (optional): ');
+        if (homepage.trim()) manifest.homepage = homepage.trim();
+        
+        console.log('\n📋 App Permissions:\n');
+        console.log('Channel permissions (Root Apps run in browser):');
+      }
+      
+      if (isRootBot) {
+        // Community permissions only for Root Bots
+        console.log('Community permissions:');
+      const manageRoles = await question('  Need to manage roles? (y/n): ');
+      if (manageRoles.toLowerCase() === 'y') {
+        manifest.permissions.community.ManageRoles = true;
+      }
+      
+      const manageCommunity = await question('  Need to manage community settings? (y/n): ');
+      if (manageCommunity.toLowerCase() === 'y') {
+        manifest.permissions.community.ManageCommunity = true;
+      }
+      
+      const manageChannels = await question('  Need to manage channels? (y/n): ');
+      if (manageChannels.toLowerCase() === 'y') {
+        manifest.permissions.community.ManageChannels = true;
+      }
+      
+        console.log('\nChannel permissions:');
+      }
+      
+      // Channel permissions (both Root Bot and Root App)
+      const createMsg = await question('  Need to send messages? (y/n): ');
+      if (createMsg.toLowerCase() === 'y') {
+        manifest.permissions.channel.CreateMessage = true;
+      }
+      
+      const readMsg = await question('  Need to read messages? (y/n): ');
+      if (readMsg.toLowerCase() === 'y') {
+        manifest.permissions.channel.ReadMessage = true;
+      }
+      
+      const deleteMsg = await question('  Need to delete messages? (y/n): ');
+      if (deleteMsg.toLowerCase() === 'y') {
+        manifest.permissions.channel.DeleteMessage = true;
+      }
+      
+      const managePins = await question('  Need to manage pins? (y/n): ');
+      if (managePins.toLowerCase() === 'y') {
+        manifest.permissions.channel.ManagePins = true;
+      }
+      
+      rl.close();
+    }
+    
+    // Write manifest file
+    fs.writeFileSync(
+      manifestFile,
+      JSON.stringify(manifest, null, 2)
+    );
+    
+    console.log(`\n✅ Generated ${manifestFile} successfully!\n`);
+    console.log('📋 Manifest Details:');
+    console.log(`   Platform: ${isRootBot ? 'Root Bot (server-side)' : 'Root App (client-side)'}`);
+    console.log(`   ID: ${manifest.id}`);
+    console.log(`   Version: ${manifest.version}`);
+    if (isRootBot) {
+      console.log(`   Launch: ${manifest.package.server.launch}`);
+    } else {
+      console.log(`   Name: ${manifest.name || '(not set)'}`);
+    }
+    console.log('');
+    console.log('⚠️  Important:');
+    console.log('   - The ID is unique to your ' + (isRootBot ? 'bot' : 'app') + ' - never change it after publishing');
+    console.log('   - Update version when you make changes (follow semver)');
+    if (isRootBot) {
+      console.log('   - See docs/ROOT_APP_MANIFEST.md for full documentation');
+    }
+    console.log('');
+    console.log('📝 Next steps:');
+    console.log(`   1. Review and customize ${manifestFile}`);
+    if (isRootBot) {
+      console.log('   2. Build your bot: npm run build');
+      console.log('   3. Publish: npx @rootsdk/cli publish');
+    } else {
+      console.log('   2. Build your app: npm run build');
+      console.log('   3. Deploy through Root platform interface');
+    }
+    console.log('');
   });
 
 program

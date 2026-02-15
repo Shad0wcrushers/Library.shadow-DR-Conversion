@@ -5,7 +5,7 @@
 [![npm version](https://badge.fury.io/js/library.dr-conversion.svg)](https://www.npmjs.com/package/library.dr-conversion)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-**Library.DR-Conversion** (v0.2.8) is a TypeScript library that provides a unified, platform-agnostic interface for building chat bots that work across multiple platforms like Discord, Root, and potentially others. Write your bot logic once, and deploy it anywhere!
+**Library.DR-Conversion** (v0.2.9) is a TypeScript library that provides a unified, platform-agnostic interface for building chat bots that work across multiple platforms like Discord, Root, and potentially others. Write your bot logic once, and deploy it anywhere!
 
 ## ✨ Features
 
@@ -78,6 +78,28 @@ npx library.dr-conversion init -p root-app -n my-root-app
 ```
 
 This creates a fully configured project with TypeScript, example code, and environment variables ready to go!
+
+**Generate Root Bot Manifest:**
+
+If you're building a Root bot, you'll need a `root-manifest.json` file:
+
+```bash
+# Quick generation with defaults
+npx library.dr-conversion generate-manifest
+# or simply
+npm run generate-manifest
+
+# Interactive mode with guided prompts
+npx library.dr-conversion generate-manifest -i
+```
+
+The generator will:
+- Create a proper UUID for your bot ID
+- Guide you through version and configuration options
+- Set up permissions for your bot
+- Generate a valid `root-manifest.json` file
+
+See the [Root Bot Manifest Guide](docs/ROOT_APP_MANIFEST.md) for details.
 
 ### Basic Usage
 
@@ -273,10 +295,13 @@ await rootBot.connect();
 
 #### Building Root Apps with This Library
 
-**Prerequisites**: First install the Root client SDK:
+**Prerequisites**: 
 ```bash
+# Install the Root client SDK
 npm install @rootsdk/client-app
 ```
+
+**Note**: Root Apps (client-side) have different deployment requirements than Root Bots. They run in the Root client browser and don't require server-side manifest files. Configuration is done through the Root platform's app management interface.
 
 You can now create Root Apps (client-side) using the same unified interface:
 
@@ -565,6 +590,7 @@ const client = new UnifiedClient({
 - 📗 **[API Reference](API.md)** - Detailed API documentation
 - 📙 **[Migration Guide](docs/MIGRATION.md)** - Upgrade and migration guides
 - 📕 **[Contributing Guide](CONTRIBUTING.md)** - How to contribute
+- 📋 **[Root Bot Manifest Guide](docs/ROOT_APP_MANIFEST.md)** - Creating root-manifest.json for Root Bots (server-side)
 
 ### Creating Rich Messages
 
