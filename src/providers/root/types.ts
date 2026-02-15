@@ -14,7 +14,7 @@
 import { PlatformConfig, PlatformCapabilities } from '../../types/platform';
 
 /**
- * Root-specific configuration
+ * Root Bot (server-side) specific configuration
  */
 export interface RootConfig extends PlatformConfig {
   /** Root bot token from developer portal */
@@ -40,6 +40,19 @@ export interface RootConfig extends PlatformConfig {
   
   /** Enable debug logging */
   debug?: boolean;
+}
+
+/**
+ * Root App (client-side) specific configuration
+ * Root Apps are GUI applications that run on user devices
+ * Note: Root Apps don't require authentication tokens as they run in user context
+ */
+export interface RootAppConfig extends Omit<PlatformConfig, 'token'> {
+  /** Optional: Any app-specific configuration */
+  appConfig?: Record<string, unknown>;
+  
+  /** Token not required for client-side apps (optional placeholder) */
+  token?: string;
 }
 
 /**

@@ -24,7 +24,8 @@
 | Platform | Status | Features |
 |----------|--------|----------|
 | Discord | ✅ Fully Supported | Messages, Embeds, Reactions, Buttons, Slash Commands |
-| Root | ✅ Fully Supported | Messages, Reactions, Pins, Typing Indicators, File Attachments (via `@rootsdk/server-bot` v0.17.0+) |
+| Root (Bot) | ✅ Fully Supported | Messages, Reactions, Pins, Typing Indicators, File Attachments (via `@rootsdk/server-bot` v0.17.0+) |
+| Root (App) | ✅ Fully Supported | Client-side UI, File Uploads, User Profiles, Theme Detection (via `@rootsdk/client-app` v0.17.0+) |
 | Others | 📝 Planned | Open to community contributions |
 
 ## 🚀 Quick Start
@@ -208,9 +209,108 @@ await discordBot.connect();
 await rootBot.connect();
 ```
 
-### ⚠️ Deployment Considerations for Root Apps
+### 🏗️ Understanding Root's Architecture
 
-**Important:** When deploying an app to Root's infrastructure, Root automatically clones your server-side code and runs one instance per community. Be mindful of which platforms your code connects to:
+**Root Bots vs Root Apps** - A Critical Distinction:
+
+#### Root Bots (What This Library Implements)
+- **Server-Side**: Code runs on your server or Root's cloud infrastructure
+- **Package**: Uses `@rootsdk/server-bot`
+- **Deployment**: One instance per community (automatic)
+- **Capabilities**: Messaging, events, data fetching, server logic
+- **File Uploads**: Can send files with pre-uploaded token URIs
+
+#### Root Apps (Client-Side GUI Applications)
+- **Client-Side**: Code is distributed to all community members' devices
+- **Package**: Uses `@rootsdk/client-app`
+- **Deployment**: Code downloaded and installed into members' devices
+- **Capabilities**: Full GUI, runs in app channels (serves index.html)
+- **File Uploads**: Can upload files directly from user devices
+- **✅ NOW SUPPORTED**: Use `platform: 'root-app'` with this library!
+
+#### Building Root Apps with This Library
+
+You can now create Root Apps (client-side) using the same unified interface:
+
+```typescript
+// Root App (client-side GUI application)
+const app = new UnifiedClient({
+  platform: 'root-app',  // Client-side Root App
+  config: {
+    appConfig: { /* your app config */ }
+    // No token needed - runs in user context!
+  }
+});
+
+await app.connect();
+
+// Access Root App features
+const provider = app.getProvider() as RootAppProvider;
+
+// 1. User Profile Management
+const userId = provider.getCurrentUserId();
+const user = await provider.getUser(userId);
+console.log(`Welcome, ${user.displayName}!`);
+
+// Get multiple users at once
+const users = await provider.getUsers(['user-id-1', 'user-id-2']);
+
+// Show user profile in Root's UI
+provider.showUserProfile(userId);  // Opens profile modal
+
+// 2. File Upload with Previews
+const tokens = await provider.uploadFiles('imageAll');  // Opens file picker
+tokens.forEach(token => {
+  const previewUrl = provider.getUploadPreview(token);
+  if (previewUrl) {
+    console.log('Image preview:', previewUrl);
+  }
+});
+
+// 3. Theme Detection with Live Updates
+const theme = provider.getTheme();  // 'light' or 'dark'
+
+// Listen for theme changes
+provider.onThemeChange((newTheme) => {
+  console.log(`Theme changed to: ${newTheme}`);
+  // Update your UI styling dynamically
+  document.body.className = newTheme === 'dark' ? 'dark-theme' : 'light-theme';
+});
+
+// 4. Asset URL Conversion
+const imageUrl = provider.imageToUrl(user.avatarUrl, 'medium');
+const assetUrl = provider.assetToUrl('root://asset/some-id');
+
+// 5. App Lifecycle Management
+provider.restart('/new-route');  // Navigate to different app route
+```
+
+**Root App Capabilities:**
+- ✅ **User Profiles**: Get single or batch user profiles, show profile UI
+- ✅ **File Uploads**: Upload from user device with preview support
+- ✅ **Theme Detection**: Get theme and listen for live updates
+- ✅ **Asset Conversion**: Convert Root URIs to URLs with resolution control
+- ✅ **Lifecycle Control**: Restart app or navigate to different routes
+
+**File Type Options:**
+- `'all'` - All file types
+- `'imageAll'` - All image formats
+- `'text'` - Text files only
+- `'pdf'` - PDF files only
+
+See [examples/root-app.ts](examples/root-app.ts) for a complete example with HTML UI integration!
+
+#### Why This Matters for File Uploads
+
+The **"Hybrid" approach** combines both Root Bot and Root App:
+- **Root App** (client): Handles file upload from user devices → gets token URI
+- **Root Bot** (server): Uses token URI to attach files to messages
+
+This architecture is why `@rootsdk/server-bot` doesn't expose upload APIs - uploads happen client-side!
+
+### ⚠️ Deployment Considerations for Root Bots
+
+**Important:** When deploying a bot to Root's infrastructure, Root automatically clones your server-side code and runs one instance per community. Be mindful of which platforms your code connects to:
 
 ```typescript
 // ❌ DON'T: This would start BOTH Root and Discord bots when installed to Root
@@ -722,6 +822,78 @@ new UnifiedClient(options: UnifiedClientConfig)
 - `messageDelete` - Emitted on message delete
 - `error` - Emitted on error
 
+### RootAppProvider
+
+Root App (client-side) specific provider with access to Root's client APIs.
+
+#### Properties
+- `platformName: 'root-app'` - Platform identifier
+- `platformVersion: string` - Provider version
+- `currentUserId?: string` - Current user ID (available after connect)
+
+#### User Management
+```typescript
+getCurrentUserId(): string | undefined
+  // Get the current user's ID
+
+getUser(userId: string): Promise<User>
+  // Get a single user profile
+
+getUsers(userIds: string[]): Promise<User[]>
+  // Get multiple user profiles at once
+
+showUserProfile(userId: string): void
+  // Open user profile in Root's UI (modal/page)
+```
+
+#### File Management
+```typescript
+uploadFiles(fileType?: 'all' | 'text' | 'imageAll' | 'pdf'): Promise<string[]>
+  // Opens file picker, uploads files, returns token URIs
+  // Default: 'all'
+
+getUploadPreview(token: string): string | undefined
+  // Get preview URL for an upload token (before full upload)
+  // Returns URL or undefined if no preview available
+```
+
+#### Asset Conversion
+```typescript
+assetToUrl(uri: string | null | undefined): string
+  // Convert Root asset URI to full URL
+
+imageToUrl(
+  uri: string | null | undefined,
+  resolution?: 'original' | 'large' | 'medium' | 'small'
+): string
+  // Convert Root image URI to URL with specified resolution
+  // Default: 'medium'
+```
+
+#### Theme Management
+```typescript
+getTheme(): 'light' | 'dark'
+  // Get current theme mode
+
+onThemeChange(callback: (theme: 'light' | 'dark') => void): void
+  // Register callback for theme changes
+  // Called immediately when theme updates
+```
+
+#### Lifecycle Control
+```typescript
+restart(relativeUrl?: string): void
+  // Restart app or navigate to different route
+  // Example: restart('/settings')
+```
+
+#### Events
+- `ready` - Emitted when app is initialized
+- `themeChange` - Emitted when theme updates (via generic event system)
+- `error` - Emitted on error
+
+See [examples/root-app.ts](examples/root-app.ts) for complete usage examples.
+
 ### Types
 
 See [src/types/](src/types/) for complete type definitions.
@@ -865,9 +1037,9 @@ Areas where we'd love help:
 
 ### Root File Upload Architecture
 
-Root uses a **client-server split architecture** for file uploads:
+Root uses a **client-server split architecture** for file uploads. This design reflects Root's distinction between **Root Apps** (client-side) and **Root Bots** (server-side):
 
-**Client-Side (Upload):**
+**Client-Side (Upload):** _(Root Apps or custom client code)_
 1. Client requests upload token from Root API (via `@rootsdk/client-app`)
 2. Client uploads file directly to Root's storage using the token
 3. Client receives a token URI after successful upload
@@ -886,14 +1058,27 @@ const message = await rootClient.sendMessageWithAttachments(
 - Security: Clients upload directly to storage (no server bottleneck)
 - Scalability: Distributed upload load across clients
 - Bandwidth: Server doesn't proxy large files
+- Architecture: Reflects Root's separation of Apps (client-side) and Bots (server-side)
 - The `@rootsdk/server-bot` package intentionally does not expose upload token generation
 
 **Implementation Options:**
-1. **Hybrid Bot**: Use `@rootsdk/client-app` alongside server-bot for full file support
-2. **Pure Server Bot**: Accept pre-uploaded token URIs from your application's client
-3. **Custom Integration**: Integrate with Root's upload API directly
 
-For most use cases, accepting token URIs from clients is the recommended approach.
+1. **Root App + Root Bot (Hybrid)**: Build both a Root App and Root Bot
+   - Root App (client-side): Handles file uploads from user devices, gets token URIs
+   - Root Bot (server-side): Uses token URIs to attach files to messages
+   - Best for: Full-featured bots with rich file support
+
+2. **Pure Root Bot**: Accept token URIs from external sources
+   - Your web/mobile app uploads files and passes token URIs to bot
+   - Bot uses `sendMessageWithAttachments(channelId, content, tokenUris)`
+   - Best for: Bots integrated with existing applications
+
+3. **Custom Integration**: Direct Root API integration
+   - Implement file upload flow yourself
+   - Generate tokens and upload files via Root's storage API
+   - Best for: Advanced use cases with specific requirements
+
+For most use cases, option #2 (Pure Root Bot accepting token URIs) is the recommended approach.
 
 ### Known Issues
 - Some test files have module resolution issues (3/52 test suites)

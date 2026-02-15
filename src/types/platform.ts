@@ -131,7 +131,7 @@ export interface PlatformConfig {
 /**
  * Platform type identifiers
  */
-export type PlatformType = 'discord' | 'root';
+export type PlatformType = 'discord' | 'root' | 'root-app';
 
 /**
  * Platform capabilities - used to document what features each platform supports

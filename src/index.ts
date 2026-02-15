@@ -19,7 +19,8 @@ export { BaseProvider } from './providers/base';
 export { DiscordProvider } from './providers/discord/provider';
 export { DiscordConfig } from './providers/discord/types';
 export { RootProvider } from './providers/root/provider';
-export { RootConfig } from './providers/root/types';
+export { RootAppProvider } from './providers/root/app-provider';
+export { RootConfig, RootAppConfig } from './providers/root/types';
 
 // Utilities
 export { Logger, LogLevel, getLogger } from './utils/logger';

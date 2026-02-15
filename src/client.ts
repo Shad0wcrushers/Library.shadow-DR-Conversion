@@ -16,7 +16,8 @@ import {
 import { DiscordProvider } from './providers/discord/provider';
 import { DiscordConfig } from './providers/discord/types';
 import { RootProvider } from './providers/root/provider';
-import { RootConfig } from './providers/root/types';
+import { RootAppProvider } from './providers/root/app-provider';
+import { RootConfig, RootAppConfig } from './providers/root/types';
 import { UnsupportedPlatformError } from './utils/errors';
 import { Logger, getLogger, LogLevel } from './utils/logger';
 
@@ -28,7 +29,7 @@ export interface UnifiedClientConfig {
   platform: PlatformType;
   
   /** Platform-specific configuration */
-  config: DiscordConfig | RootConfig;
+  config: DiscordConfig | RootConfig | RootAppConfig;
   
   /** Optional logging level */
   logLevel?: LogLevel;
@@ -59,7 +60,7 @@ export class UnifiedClient extends EventEmitter {
   private provider: PlatformProvider;
   private logger: Logger;
   private platform: PlatformType;
-  private config: DiscordConfig | RootConfig;
+  private config: DiscordConfig | RootConfig | RootAppConfig;
   
   constructor(options: UnifiedClientConfig) {
     super();
@@ -84,13 +85,16 @@ export class UnifiedClient extends EventEmitter {
   /**
    * Create a provider instance based on the platform type
    */
-  private createProvider(platform: PlatformType, config: DiscordConfig | RootConfig): PlatformProvider {
+  private createProvider(platform: PlatformType, config: DiscordConfig | RootConfig | RootAppConfig): PlatformProvider {
     switch (platform.toLowerCase()) {
       case 'discord':
         return new DiscordProvider(config as DiscordConfig);
       
       case 'root':
         return new RootProvider(config as RootConfig);
+      
+      case 'root-app':
+        return new RootAppProvider(config as RootAppConfig);
       
       default:
         throw new UnsupportedPlatformError(platform);

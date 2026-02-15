@@ -20,6 +20,8 @@
     "dev": "tsc --watch",
     "example:simple": "ts-node examples/simple-bot.ts",
     "example:discord": "ts-node examples/discord-bot.ts",
+    "example:root": "ts-node examples/root-bot.ts",
+    "example:root-app": "ts-node examples/root-app.ts",
     "example:advanced": "ts-node examples/advanced-bot.ts"
   },
   "keywords": [
