@@ -1,5 +1,5 @@
 {
-  "name": "Library@DR-Conversion",
+  "name": "Library.DR-Conversion",
   "version": "0.1.0",
   "description": "Unified interface for building multi-platform chat bots (Discord, Root, and more)",
   "main": "dist/index.js",
@@ -34,16 +34,16 @@
     "unified",
     "typescript"
   ],
-  "author": "Shadowcrushers",
+  "author": "Shad0wcrushers",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Shadowcrushers/chat-platform-bridge.git"
+    "url": "https://github.com/Shad0wcrushers/Library.shadow-DR-Conversion.git"
   },
   "bugs": {
-    "url": "https://github.com/Shadowcrushers/chat-platform-bridge/issues"
+    "url": "https://github.com/Shad0wcrushers/Library.shadow-DR-Conversion/issues"
   },
-  "homepage": "https://github.com/Shadowcrushers/chat-platform-bridge#readme",
+  "homepage": "https://github.com/Shad0wcrushers/Library.shadow-DR-Conversion#readme",
   "engines": {
     "node": ">=16.0.0"
   },
