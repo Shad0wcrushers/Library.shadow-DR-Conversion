@@ -58,9 +58,13 @@ export interface UnifiedClientConfig {
 export class UnifiedClient extends EventEmitter {
   private provider: PlatformProvider;
   private logger: Logger;
+  private platform: PlatformType;
+  private config: DiscordConfig | RootConfig;
   
   constructor(options: UnifiedClientConfig) {
     super();
+    this.platform = options.platform;
+    this.config = options.config;
     
     // Setup logging
     this.logger = getLogger();
@@ -131,6 +135,9 @@ export class UnifiedClient extends EventEmitter {
    * @returns Promise that resolves when connected
    */
   async connect(): Promise<void> {
+    // Check if auto-start is prevented
+    this.checkStartupPermission();
+    
     this.logger.info('Connecting to platform...');
     await this.provider.connect();
   }
@@ -142,6 +149,37 @@ export class UnifiedClient extends EventEmitter {
   async disconnect(): Promise<void> {
     this.logger.info('Disconnecting from platform...');
     await this.provider.disconnect();
+  }
+  
+  /**
+   * Check if startup is allowed based on preventAutoStart config and environment variables
+   * @throws Error if startup is blocked
+   */
+  private checkStartupPermission(): void {
+    const platformUpper = this.platform.toUpperCase();
+    const envVar = `ALLOW_${platformUpper}_BOT`;
+    const envValue = process.env[envVar];
+    const isExplicitlyDisabled = envValue === 'false';
+    const isExplicitlyEnabled = envValue === 'true';
+    
+    // Check for explicit disable via env var (works without preventAutoStart)
+    if (isExplicitlyDisabled) {
+      const errorMsg = `${this.platform} bot startup blocked by ${envVar}=false`;
+      this.logger.error(errorMsg);
+      throw new Error(errorMsg);
+    }
+    
+    // Check preventAutoStart config requirement
+    const preventAutoStart = this.config.preventAutoStart;
+    if (preventAutoStart === true) {
+      if (!isExplicitlyEnabled) {
+        const errorMsg = `${this.platform} bot startup blocked. Set ${envVar}=true to allow startup, or remove preventAutoStart config.`;
+        this.logger.error(errorMsg);
+        throw new Error(errorMsg);
+      }
+      
+      this.logger.info(`${this.platform} bot startup permitted via ${envVar}`);
+    }
   }
   
   /**

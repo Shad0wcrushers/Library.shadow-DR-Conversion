@@ -1,8 +1,8 @@
-# Library@DR-conversion
+# Library@DR-Conversion
 
 > Unified interface for building multi-platform chat bots
 
-[![npm version](https://badge.fury.io/js/Library.DR-Conversion.svg)](https://www.npmjs.com/package/Library.DR-Conversion)
+[![npm version](https://badge.fury.io/js/library.dr-conversion.svg)](https://www.npmjs.com/package/library.dr-conversion)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 **Library.DR-Conversion** (v0.1.0) is a TypeScript library that provides a unified, platform-agnostic interface for building chat bots that work across multiple platforms like Discord, Root, and potentially others. Write your bot logic once, and deploy it anywhere!
@@ -12,6 +12,8 @@
 - 🌉 **Unified Interface**: Single API that works across all supported platforms
 - 🔒 **Type-Safe**: Full TypeScript support with strict typing
 - 🎯 **Platform-Agnostic**: Write platform-independent bot code
+- 🔄 **Bidirectional Conversion**: Convert bots between platforms (Discord ↔ Root) with the same codebase
+- 🛡️ **Production-Ready**: Auto-detects production environments and adjusts logging for security
 - 🔌 **Extensible**: Easy to add new platform providers
 - 🎨 **Rich Content**: Support for embeds, buttons, reactions, and more
 - ⚡ **Modern**: Built with async/await and ES2020+
@@ -30,13 +32,13 @@
 ### Installation
 
 ```bash
-npm install Library.DR-Conversion
+npm install library.dr-conversion
 ```
 
 ### Basic Usage
 
 ```typescript
-import { UnifiedClient } from 'Library.DR-Conversion';
+import { UnifiedClient } from 'library.dr-conversion';
 
 // Create a client (works with any platform!)
 const client = new UnifiedClient({
@@ -57,9 +59,9 @@ client.on('message', async (message) => {
 await client.connect();
 ```
 
-### Switching Platforms
+### Switching Platforms (Bidirectional Conversion)
 
-The beauty of Library.DR-Conversion is that switching platforms is as simple as changing one line:
+The beauty of Library.DR-Conversion is that you can convert your bot between platforms **in both directions** - just change one line! Your bot logic remains the same whether you're moving from Discord to Root, Root to Discord, or to any other supported platform.
 
 ```typescript
 // Discord bot
@@ -68,12 +70,291 @@ const client = new UnifiedClient({
   config: { token: process.env.DISCORD_TOKEN }
 });
 
-// Root bot (same code!)
+// Same bot on Root - just change the platform!
 const client = new UnifiedClient({
   platform: 'root',
   config: { token: process.env.ROOT_TOKEN }
 });
 ```
+
+**No code rewriting needed!** All your message handlers, commands, and bot logic work on both platforms:
+
+```typescript
+// This code works on Discord, Root, or any supported platform
+client.on('message', async (message) => {
+  if (message.content === '!hello') {
+    await message.reply('Hello from any platform!');
+  }
+  
+  if (message.content === '!info') {
+    await client.sendMessage(message.channel.id, {
+      embeds: [{
+        title: 'Bot Info',
+        description: `Running on ${client.platformName}`,
+        color: '#00ff00'
+      }]
+    });
+  }
+});
+```
+
+### 🔄 Multi-Instance Usage (Root Communities)
+
+**Important for Root developers:** Root's architecture spins up separate server-side instances for each community. The library mirrors this design - each `UnifiedClient` connects to **one Root community**.
+
+To manage multiple Root communities, create multiple client instances:
+
+```typescript
+// Bot connected to multiple Root communities
+const community1Bot = new UnifiedClient({
+  platform: 'root',
+  config: { 
+    token: process.env.ROOT_TOKEN,
+    communityId: 'community-1-id'
+  }
+});
+
+const community2Bot = new UnifiedClient({
+  platform: 'root',
+  config: { 
+    token: process.env.ROOT_TOKEN,
+    communityId: 'community-2-id'
+  }
+});
+
+// Each instance operates independently
+community1Bot.on('message', (msg) => {
+  console.log('Message from Community 1');
+});
+
+community2Bot.on('message', (msg) => {
+  console.log('Message from Community 2');
+});
+
+await community1Bot.connect();
+await community2Bot.connect();
+```
+
+This pattern also works for running the same bot across **different platforms simultaneously**:
+
+```typescript
+const discordBot = new UnifiedClient({ platform: 'discord', config: { token: DISCORD_TOKEN } });
+const rootBot = new UnifiedClient({ platform: 'root', config: { token: ROOT_TOKEN } });
+
+// Same message handler shared across both platforms
+const handleMessage = async (message) => {
+  if (message.content === '!ping') {
+    await message.reply('Pong!');
+  }
+};
+
+discordBot.on('message', handleMessage);
+rootBot.on('message', handleMessage);
+
+await discordBot.connect();
+await rootBot.connect();
+```
+
+### ⚠️ Deployment Considerations for Root Apps
+
+**Important:** When deploying an app to Root's infrastructure, Root clones your server-side code and runs one instance per community. Be mindful of which platforms your code connects to:
+
+```typescript
+// ❌ DON'T: This would start BOTH Root and Discord bots when installed to Root
+const rootBot = new UnifiedClient({ platform: 'root', config: { token: ROOT_TOKEN } });
+const discordBot = new UnifiedClient({ platform: 'discord', config: { token: DISCORD_TOKEN } });
+await rootBot.connect();
+await discordBot.connect(); // Discord bot spins up for every Root community!
+```
+
+#### Built-in Safety: Environment Variable Control 🛡️
+
+**Two ways to control bot startup:**
+
+**1. Explicit Disable** (works always, no config needed):
+```bash
+ALLOW_DISCORD_BOT=false  # Blocks Discord bot startup
+ALLOW_ROOT_BOT=false     # Blocks Root bot startup
+```
+
+**2. Require Explicit Enable** with `preventAutoStart: true`:
+
+```typescript
+// Requires explicit permission to start
+const discordBot = new UnifiedClient({ 
+  platform: 'discord', 
+  config: { 
+    token: DISCORD_TOKEN,
+    preventAutoStart: true  // Requires ALLOW_DISCORD_BOT=true
+  }
+});
+
+const rootBot = new UnifiedClient({ 
+  platform: 'root', 
+  config: { 
+    token: ROOT_TOKEN,
+    preventAutoStart: true  // Requires ALLOW_ROOT_BOT=true
+  }
+});
+
+// Only bots with their ALLOW_{PLATFORM}_BOT=true will start
+await discordBot.connect(); // Blocked unless ALLOW_DISCORD_BOT=true
+await rootBot.connect();    // Blocked unless ALLOW_ROOT_BOT=true
+```
+
+**How it works:**
+- `ALLOW_*_BOT=false` → ❌ **Always blocks** (even without `preventAutoStart`)
+- `ALLOW_*_BOT=true` → ✅ **Always allows**
+- `preventAutoStart: true` + env var not set → ❌ **Blocked** (requires explicit `=true`)
+- `preventAutoStart: false` (or not set) + env var not set → ✅ **Allowed** (default behavior)
+
+**Use case examples:**
+
+**Scenario 1 (Simple):** Deploy to **Root**, disable Discord bot with env var only:
+
+```typescript
+// bot.ts - No preventAutoStart needed!
+const discordBot = new UnifiedClient({ 
+  platform: 'discord', 
+  config: { token: process.env.DISCORD_TOKEN }
+});
+
+const rootBot = new UnifiedClient({ 
+  platform: 'root', 
+  config: { token: process.env.ROOT_TOKEN }
+});
+
+await discordBot.connect(); // Checks ALLOW_DISCORD_BOT
+await rootBot.connect();    // Checks ALLOW_ROOT_BOT
+```
+
+```bash
+# .env file for Root deployment
+ALLOW_DISCORD_BOT=false        # ❌ Discord bot blocked
+ROOT_TOKEN=your-root-token
+DISCORD_TOKEN=your-discord-token
+```
+
+**Scenario 2 (Secure):** Use `preventAutoStart` to require explicit opt-in:
+
+```typescript
+// Requires explicit permission
+const discordBot = new UnifiedClient({ 
+  platform: 'discord', 
+  config: { 
+    token: process.env.DISCORD_TOKEN,
+    preventAutoStart: true  // Requires ALLOW_DISCORD_BOT=true
+  }
+});
+
+const rootBot = new UnifiedClient({ 
+  platform: 'root', 
+  config: { 
+    token: process.env.ROOT_TOKEN,
+    preventAutoStart: true  // Requires ALLOW_ROOT_BOT=true
+  }
+});
+
+await discordBot.connect();
+await rootBot.connect();
+```
+
+```bash
+# Root deployment - must explicitly enable
+ALLOW_ROOT_BOT=true            # ✅ Root bot will start
+# ALLOW_DISCORD_BOT not set    # ❌ Discord bot blocked (preventAutoStart requires =true)
+ROOT_TOKEN=your-root-token
+DISCORD_TOKEN=your-discord-token
+```
+
+**Scenario 3:** Standalone Discord bot server:
+
+```bash
+# Option A: Explicit disable
+ALLOW_DISCORD_BOT=true         # ✅ Discord bot will start
+ALLOW_ROOT_BOT=false           # ❌ Root bot explicitly blocked
+DISCORD_TOKEN=your-discord-token
+ROOT_TOKEN=your-root-token
+
+# Option B: Just don't set it (if using preventAutoStart)
+ALLOW_DISCORD_BOT=true         # ✅ Discord bot will start
+# ALLOW_ROOT_BOT not set        # ❌ Root bot blocked (if preventAutoStart=true)
+DISCORD_TOKEN=your-discord-token
+```
+
+**Result:** Control bot startup purely via environment variables - no code changes needed!
+
+#### Alternative: Environment Variable Control
+
+**Best practice:** Use environment variables to conditionally activate platforms:
+
+```typescript
+// ✅ Control which platforms to activate
+if (process.env.PLATFORM === 'root') {
+  const bot = new UnifiedClient({ platform: 'root', config: { token: process.env.ROOT_TOKEN } });
+  await bot.connect();
+} else if (process.env.PLATFORM === 'discord') {
+  const bot = new UnifiedClient({ platform: 'discord', config: { token: process.env.DISCORD_TOKEN } });
+  await bot.connect();
+}
+```
+
+Or use a hybrid approach for **intentional** cross-platform bots:
+
+```typescript
+// ✅ Explicitly bridge Root and Discord with safety guards
+const platforms = process.env.PLATFORMS?.split(',') || ['root'];
+
+for (const platform of platforms) {
+  const bot = new UnifiedClient({
+    platform,
+    config: { 
+      token: process.env[`${platform.toUpperCase()}_TOKEN`],
+      preventAutoStart: true  // Requires ALLOW_{PLATFORM}_BOT=true
+    }
+  });
+  await bot.connect();
+}
+// Set PLATFORMS='root' and ALLOW_ROOT_BOT=true for Root-only
+// Set PLATFORMS='root,discord', ALLOW_ROOT_BOT=true, ALLOW_DISCORD_BOT=true for cross-platform
+```
+
+**Rule of thumb:** Use `preventAutoStart: true` to prevent accidental multi-platform startup when deploying to Root.
+
+### 🔇 Production Logging
+
+**Automatic:** The library detects production environments and automatically reduces logging verbosity to `WARN` level (only warnings and errors).
+
+Production is detected when `NODE_ENV` is set to `production` or `prod`:
+
+```bash
+# Production deployment - automatic WARN level logging
+NODE_ENV=production
+ALLOW_ROOT_BOT=true
+ROOT_TOKEN=your-token
+```
+
+**Manual control:** Override the automatic detection by setting `logLevel` explicitly:
+
+```typescript
+import { UnifiedClient, LogLevel } from 'library.dr-conversion';
+
+// Force specific log level regardless of environment
+const client = new UnifiedClient({
+  platform: 'discord',
+  config: { token: process.env.DISCORD_TOKEN },
+  logLevel: LogLevel.ERROR  // Only log errors
+});
+```
+
+**Available log levels:**
+- `LogLevel.DEBUG` - All messages (verbose)
+- `LogLevel.INFO` - Info, warnings, and errors (default in development)
+- `LogLevel.WARN` - Warnings and errors only (default in production)
+- `LogLevel.ERROR` - Errors only
+- `LogLevel.NONE` - No logging
+
+**Security note:** Debug and Info logs may contain sensitive information (tokens, user IDs, message content). Production mode automatically prevents this by limiting logs to warnings and errors. This is especially important for Discord bots to comply with Discord's data privacy guidelines.
 
 ## 📖 Documentation
 
@@ -249,7 +530,7 @@ Library.DR-Conversion/
 ### Custom Logging
 
 ```typescript
-import { UnifiedClient, LogLevel } from 'Library.DR-Conversion';
+import { UnifiedClient, LogLevel } from 'library.dr-conversion';
 
 const client = new UnifiedClient({
   platform: 'discord',
@@ -266,7 +547,7 @@ client.setLogLevel(LogLevel.INFO);
 While the goal is platform-agnostic code, sometimes you need platform-specific features:
 
 ```typescript
-import { DiscordProvider } from 'Library.DR-Conversion';
+import { DiscordProvider } from 'library.dr-conversion';
 
 const client = new UnifiedClient({
   platform: 'discord',
@@ -292,7 +573,7 @@ import {
   UnsupportedPlatformError,
   AuthenticationError,
   ResourceNotFoundError 
-} from 'Library@DR-Conversion';
+} from 'library.dr-conversion';
 
 client.on('message', async (message) => {
   try {

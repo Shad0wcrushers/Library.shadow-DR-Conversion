@@ -15,7 +15,25 @@ export class Logger {
   private level: LogLevel = LogLevel.INFO;
   private prefix: string = '[ChatPlatformBridge]';
   
-  private constructor() {}
+  private constructor() {
+    // Auto-detect production environment and adjust log level
+    this.detectProductionEnvironment();
+  }
+  
+  /**
+   * Detect if running in production and adjust log level accordingly
+   * In production, only log warnings and errors by default
+   */
+  private detectProductionEnvironment(): void {
+    const nodeEnv = process.env['NODE_ENV']?.toLowerCase();
+    const isProduction = nodeEnv === 'production' || nodeEnv === 'prod';
+    
+    if (isProduction) {
+      this.level = LogLevel.WARN;
+      // Log once that we're in production mode (using console.log to bypass level check)
+      console.log(`${this.prefix} [INFO] Production environment detected - logging set to WARN level`);
+    }
+  }
   
   /**
    * Get the singleton logger instance
@@ -33,6 +51,14 @@ export class Logger {
    */
   setLevel(level: LogLevel): void {
     this.level = level;
+  }
+  
+  /**
+   * Check if currently running in production environment
+   */
+  isProduction(): boolean {
+    const nodeEnv = process.env['NODE_ENV']?.toLowerCase();
+    return nodeEnv === 'production' || nodeEnv === 'prod';
   }
   
   /**

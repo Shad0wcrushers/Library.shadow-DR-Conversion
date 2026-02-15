@@ -116,6 +116,14 @@ export interface PlatformConfig {
   /** Authentication token */
   token: string;
   
+  /** 
+   * Require explicit environment variable to allow bot startup
+   * When true, requires ALLOW_{PLATFORM}_BOT=true to start
+   * Prevents accidental startup when deployed to other platforms
+   * @default false
+   */
+  preventAutoStart?: boolean;
+  
   /** Additional platform-specific options */
   [key: string]: unknown;
 }
