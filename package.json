@@ -1,0 +1,90 @@
+{
+  "name": "chat-platform-bridge",
+  "version": "1.0.0",
+  "description": "Unified interface for building multi-platform chat bots (Discord, Root, and more)",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "build:watch": "tsc --watch",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "lint": "eslint src/**/*.ts",
+    "lint:fix": "eslint src/**/*.ts --fix",
+    "format": "prettier --write \"src/**/*.ts\" \"tests/**/*.ts\" \"examples/**/*.ts\"",
+    "format:check": "prettier --check \"src/**/*.ts\" \"tests/**/*.ts\" \"examples/**/*.ts\"",
+    "prepublishOnly": "npm run build && npm run test",
+    "clean": "rimraf dist dist-examples coverage",
+    "typecheck": "tsc --noEmit",
+    "dev": "tsc --watch",
+    "example:simple": "ts-node examples/simple-bot.ts",
+    "example:discord": "ts-node examples/discord-bot.ts",
+    "example:advanced": "ts-node examples/advanced-bot.ts"
+  },
+  "keywords": [
+    "discord",
+    "root",
+    "bot",
+    "chat",
+    "chatbot",
+    "platform",
+    "bridge",
+    "multi-platform",
+    "unified",
+    "typescript"
+  ],
+  "author": "Shadowcrushers",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Shadowcrushers/chat-platform-bridge.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Shadowcrushers/chat-platform-bridge/issues"
+  },
+  "homepage": "https://github.com/Shadowcrushers/chat-platform-bridge#readme",
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "peerDependencies": {
+    "discord.js": "^14.0.0"
+  },
+  "peerDependenciesMeta": {
+    "discord.js": {
+      "optional": true
+    }
+  },
+  "dependencies": {
+    "events": "^3.3.0",
+    "ws": "^8.16.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/ws": "^8.5.10",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "@types/jest": "^29.0.0",
+    "discord.js": "^14.14.1",
+    "eslint": "^8.0.0",
+    "jest": "^29.0.0",
+    "prettier": "^3.2.0",
+    "rimraf": "^5.0.0",
+    "ts-jest": "^29.0.0",
+    "ts-node": "^10.9.0",
+    "typescript": "^5.3.0"
+  },
+  "dependencies": {
+    "events": "^3.3.0"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE",
+    "API.md",
+    "CHANGELOG.md"
+  ],
+  "bin": {
+    "chat-platform-bridge": "./cli.js"
+  }
+}

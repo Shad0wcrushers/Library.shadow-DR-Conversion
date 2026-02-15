@@ -1,0 +1,42 @@
+# Ignore source files (only ship compiled code)
+src/
+tests/
+examples/
+
+# Development files
+*.ts
+!*.d.ts
+tsconfig.json
+jest.config.js
+.eslintrc.json
+
+# Documentation
+CONTRIBUTING.md
+CHANGELOG.md
+
+# Environment and config
+.env
+.env.*
+!.env.example
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# CI/CD
+.github/
+.travis.yml
+.circleci/
+
+# Misc
+*.log
+npm-debug.log*
+coverage/
+.nyc_output/
