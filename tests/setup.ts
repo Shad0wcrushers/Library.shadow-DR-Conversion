@@ -3,6 +3,9 @@
  * Runs before each test suite
  */
 
+// Make this file a module
+export {};
+
 // Set test timeout (useful for integration tests)
 jest.setTimeout(10000);
 
@@ -17,7 +20,7 @@ jest.setTimeout(10000);
 // };
 
 // Mock environment variables for tests
-process.env.NODE_ENV = 'test';
+process.env['NODE_ENV'] = 'test';
 
 // Add custom matchers if needed
 expect.extend({

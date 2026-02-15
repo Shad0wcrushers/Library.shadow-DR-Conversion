@@ -6,14 +6,13 @@ import { Logger, LogLevel, getLogger } from '../../src/utils/logger';
 
 describe('Logger', () => {
   let logger: Logger;
-  let consoleSpy: jest.SpyInstance;
   
   beforeEach(() => {
     logger = Logger.getInstance();
     logger.setLevel(LogLevel.DEBUG);
     
     // Spy on console methods
-    consoleSpy = jest.spyOn(console, 'debug').mockImplementation();
+    jest.spyOn(console, 'debug').mockImplementation();
     jest.spyOn(console, 'info').mockImplementation();
     jest.spyOn(console, 'warn').mockImplementation();
     jest.spyOn(console, 'error').mockImplementation();

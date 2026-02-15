@@ -3,7 +3,7 @@
  */
 
 import { BaseProvider } from '../../src/providers/base';
-import { Message, User, Channel, Guild, MessageOptions, PlatformConfig } from '../../src/types';
+import { Message, User, Channel, Guild, MessageOptions } from '../../src/types';
 
 // Mock implementation for testing
 class MockProvider extends BaseProvider {
@@ -18,41 +18,41 @@ class MockProvider extends BaseProvider {
     this._isConnected = false;
   }
   
-  async sendMessage(channelId: string, options: string | MessageOptions): Promise<Message> {
+  async sendMessage(_channelId: string, _options: string | MessageOptions): Promise<Message> {
     return {} as Message;
   }
   
-  async editMessage(messageId: string, channelId: string, content: string): Promise<Message> {
+  async editMessage(_messageId: string, _channelId: string, _content: string): Promise<Message> {
     return {} as Message;
   }
   
-  async deleteMessage(messageId: string, channelId: string): Promise<void> {}
+  async deleteMessage(_messageId: string, _channelId: string): Promise<void> {}
   
-  async getUser(userId: string): Promise<User> {
+  async getUser(_userId: string): Promise<User> {
     return {} as User;
   }
   
-  async getChannel(channelId: string): Promise<Channel> {
+  async getChannel(_channelId: string): Promise<Channel> {
     return {} as Channel;
   }
   
-  async getGuild(guildId: string): Promise<Guild> {
+  async getGuild(_guildId: string): Promise<Guild> {
     return {} as Guild;
   }
   
-  convertMessage(platformMessage: any): Message {
+  convertMessage(_platformMessage: any): Message {
     return {} as Message;
   }
   
-  convertUser(platformUser: any): User {
+  convertUser(_platformUser: any): User {
     return {} as User;
   }
   
-  convertChannel(platformChannel: any): Channel {
+  convertChannel(_platformChannel: any): Channel {
     return {} as Channel;
   }
   
-  convertGuild(platformGuild: any): Guild {
+  convertGuild(_platformGuild: any): Guild {
     return {} as Guild;
   }
 }

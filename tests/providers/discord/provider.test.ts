@@ -8,7 +8,7 @@ import { GatewayIntentBits } from 'discord.js';
 
 describe('DiscordProvider Integration', () => {
   // Skip if no token provided
-  const token = process.env.DISCORD_TOKEN;
+  const token = process.env['DISCORD_TOKEN'];
   const shouldRun = !!token;
   
   const describeIf = shouldRun ? describe : describe.skip;

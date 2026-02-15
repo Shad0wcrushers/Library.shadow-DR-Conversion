@@ -6,12 +6,9 @@
 import {
   Message,
   User,
-  Channel,
-  Guild,
   Embed,
   MessageOptions,
   UnifiedClient,
-  PlatformProvider,
   DiscordProvider,
   RootProvider,
   LogLevel,
