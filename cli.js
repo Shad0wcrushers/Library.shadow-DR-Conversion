@@ -10,7 +10,7 @@ const fs = require('fs');
 const path = require('path');
 
 program
-  .name('Library.DR-Conversion')
+  .name('library.dr-conversion')
   .description('CLI tools for Library.DR-Conversion v0.1.0')
   .version('0.1.0');
 
@@ -43,7 +43,7 @@ program
         dev: 'ts-node src/index.ts',
       },
       dependencies: {
-        'Library.DR-Conversion': '^0.1.0',
+        'library.dr-conversion': '^0.1.0',
       },
       devDependencies: {
         typescript: '^5.3.0',
@@ -100,7 +100,7 @@ dist/
     
     // Create main bot file
     const botCode = options.platform === 'discord'
-      ? `import { UnifiedClient } from 'Library.DR-Conversion';
+      ? `import { UnifiedClient } from 'library.dr-conversion';
 
 const client = new UnifiedClient({
   platform: 'discord',
@@ -123,7 +123,7 @@ client.on('message', async (message) => {
 
 client.connect();
 `
-      : `import { UnifiedClient } from 'Library.DR-Conversion';
+      : `import { UnifiedClient } from 'library.dr-conversion';
 
 const client = new UnifiedClient({
   platform: 'root',
@@ -171,8 +171,8 @@ program
     
     const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
     
-    if (!pkg.dependencies || !pkg.dependencies['Library.DR-Conversion']) {
-      console.error('❌ Library.DR-Conversion not found in dependencies');
+    if (!pkg.dependencies || !pkg.dependencies['library.dr-conversion']) {
+      console.error('❌ library.dr-conversion not found in dependencies');
       process.exit(1);
     }
     

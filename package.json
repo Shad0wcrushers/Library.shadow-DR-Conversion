@@ -1,5 +1,5 @@
 {
-  "name": "Library.DR-Conversion",
+  "name": "library.dr-conversion",
   "version": "0.1.0",
   "description": "Unified interface for building multi-platform chat bots (Discord, Root, and more)",
   "main": "dist/index.js",
@@ -85,6 +85,6 @@
     "CHANGELOG.md"
   ],
   "bin": {
-    "Library.DR-Conversion": "./cli.js"
+    "library.dr-conversion": "./cli.js"
   }
 }
