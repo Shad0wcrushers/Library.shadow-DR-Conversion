@@ -2,7 +2,13 @@
  * Root platform type definitions
  * Based on Root Bot API (https://docs.rootapp.com/docs/bot-docs/bot-home/)
  * 
- * Note: Root SDK is in beta. Update these types as official documentation becomes available.
+ * Note: Root Bot SDK is available via @rootsdk/server-bot package (v0.17.0+).
+ * Update these types based on the actual @rootsdk/server-bot exports and documentation.
+ * 
+ * Other Root SDK packages:
+ * - @rootsdk/client-app - For client-side apps
+ * - @rootsdk/server-app - For server-side apps
+ * - @rootsdk/dev-tools - Development tools
  */
 
 import { PlatformConfig, PlatformCapabilities } from '../../types/platform';

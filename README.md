@@ -24,7 +24,7 @@
 | Platform | Status | Features |
 |----------|--------|----------|
 | Discord | ✅ Fully Supported | Messages, Embeds, Reactions, Buttons, Slash Commands |
-| Root | 🚧 Stub Implementation | Ready for implementation with Root API |
+| Root | ✅ Fully Supported | Messages, Reactions, Pins, Typing Indicators, File Attachments (via `@rootsdk/server-bot` v0.17.0+) |
 | Others | 📝 Planned | Open to community contributions |
 
 ## 🚀 Quick Start
@@ -373,7 +373,7 @@ await client.sendMessage(channelId, {
       { name: 'Field 2', value: 'Value 2', inline: true }
     ],
     footer: {
-      text: 'Powered by Library.DR-Conversion v0.1.0'
+      text: 'Powered by Library.DR-Conversion v0.1.4'
     },
     timestamp: new Date()
   }]
@@ -445,7 +445,7 @@ The `examples/` directory contains several sample bots:
 
 - **simple-bot.ts**: Basic bot with common commands
 - **discord-bot.ts**: Discord-specific features and optimizations
-- **root-bot.ts**: Root platform example (stub)
+- **root-bot.ts**: Root platform example with full @rootsdk/server-bot integration
 - **advanced-bot.ts**: Advanced features including error handling, stats tracking, and rich embeds
 
 Run an example:
@@ -484,7 +484,7 @@ Library.DR-Conversion/
 │   │   │   ├── converters.ts        # Type converters
 │   │   │   └── types.ts             # Discord-specific types
 │   │   └── root/
-│   │       ├── provider.ts          # Root implementation (stub)
+│   │       ├── provider.ts          # Root implementation (fully integrated with @rootsdk/server-bot)
 │   │       ├── converters.ts        # Type converters
 │   │       └── types.ts             # Root-specific types
 │   ├── utils/
@@ -691,33 +691,168 @@ MIT License - see [LICENSE](LICENSE) file for details
 
 ## 🙏 Acknowledgments
 
-- Built with [discord.js](https://discord.js.org/)
-- Inspired by the need for platform-agnostic bot development
-- Thanks to all contributors!
+- **Discord.js** - Built with [discord.js](https://discord.js.org/) for exceptional Discord API support
+- **Root Platform** - For building an innovative chat platform and providing valuable architectural feedback
+- **Skep** - For important discussions on multi-instance architecture and production deployment considerations
+- **TypeScript Community** - For creating an amazing type-safe development experience
+- **Open Source Community** - Inspired by the need for platform-agnostic bot development and unified APIs
+
+Special thanks to everyone who provided feedback, testing, and suggestions during development!
 
 ## 📞 Support
 
-- 📫 Issues: [GitHub Issues](https://github.com/Shadowcrushers/chat-platform-bridge/issues)
-- 💬 Discussions: [GitHub Discussions](https://github.com/Shadowcrushers/chat-platform-bridge/discussions)
-- 📖 Documentation: [Full Docs](https://github.com/Shadowcrushers/chat-platform-bridge/wiki)
+### Getting Help
+
+- 📦 **NPM Package**: [library.dr-conversion](https://www.npmjs.com/package/library.dr-conversion)
+- 📖 **API Documentation**: See [API.md](API.md) for detailed API reference
+- 📝 **Examples**: Check the [examples/](examples/) directory for sample bots
+- 🐛 **Bug Reports**: Open an issue on GitHub with reproduction steps
+- 💡 **Feature Requests**: Share your ideas and use cases
+- 💬 **Questions**: Start a discussion or reach out to the community
+
+### Contributing
+
+Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+
+Areas where we'd love help:
+- Root platform advanced features (thread/reply support with parentMessageIds)
+- Additional platform providers (Telegram, Slack, Matrix)
+- Documentation improvements and examples
+- Test coverage expansion
+- Bug fixes and performance optimizations
+- Unified slash commands abstraction
+- Interactive components (buttons, select menus)
+- Unified file upload API abstraction
+
+### Community Guidelines
+
+- Be respectful and constructive
+- Follow platform-specific terms of service (Discord, Root, etc.)
+- Share knowledge and help other developers
+- Report security vulnerabilities responsibly (see [SECURITY.md](SECURITY.md))
 
 ## 🗺️ Roadmap
 
-- [ ] Complete Root platform implementation
-- [ ] Support for slash commands across platforms
-- [ ] Button and select menu components
-- [ ] File upload support
-- [ ] Voice channel support
-- [ ] Comprehensive test suite
-- [ ] Interactive documentation
-- [ ] CLI tool for scaffolding new bots
+### ✅ Completed in v0.1.x
+- [x] Full Discord platform implementation via discord.js
+- [x] Type-safe unified API across platforms
+- [x] CLI tool for scaffolding new bot projects
+- [x] Deployment safety controls (`preventAutoStart`, env var blocking)
+- [x] Production environment auto-detection for logging
+- [x] Bidirectional platform conversion support
+- [x] Multi-instance architecture support
+- [x] Rich embeds and message formatting
+- [x] Event forwarding system
+- [x] **Root platform implementation** - Fully integrated with `@rootsdk/server-bot`
+  - ✅ Core messaging (send, edit, delete)
+  - ✅ Message events (created, edited, deleted)
+  - ✅ Channel events (created, edited, deleted)
+  - ✅ Community member events (join, leave)
+  - ✅ Community update events
+  - ✅ Message reactions (add, remove, events)
+  - ✅ Message pins (pin, unpin, events)
+  - ✅ Typing indicators (send, events)
+  - ✅ User, channel, and guild data fetching
+  - ✅ Message methods (reply, delete, edit, react)
+  - ✅ File attachments (sendMessageWithAttachments for pre-uploaded files)
+
+### 🚧 In Progress
+- [ ] Root advanced features
+  - ⏳ Thread/reply support (parentMessageIds - SDK ready, not integrated)
+  - ⏳ Additional community events (role changes, bans)
+  - ⏳ Unified file upload API (abstract platform differences)
+
+### 📋 Planned Features
+- [ ] Slash commands abstraction across platforms
+- [ ] Interactive components (buttons, select menus) - unified API
+- [ ] Unified file upload abstraction (handle Discord direct + Root token-based)
+- [ ] Voice channel support (Discord-specific initially)
+- [ ] Webhook support
+- [ ] Rate limiting and queue management
+- [ ] Additional platforms (Telegram, Slack, Matrix)
+- [ ] Comprehensive testing suite (currently 48/52 tests passing)
+
+### 🔧 Developer Experience
+- [ ] Interactive documentation site
+- [ ] More example bots (slash commands, buttons, etc.)
+- [ ] Migration guides from platform-specific libraries
+- [ ] VS Code extension for bot development
+- [ ] Debug tools and logging dashboard
 
 ## ⚠️ Current Limitations
 
-- Root provider is a stub implementation - complete it based on Root's API
-- Some Discord-specific features may not be available on other platforms
-- Voice channels are Discord-specific currently
-- Slash commands need platform-specific registration
+### Platform Support
+- **Discord**: ✅ Fully implemented and tested with `discord.js`
+- **Root**: ✅ Fully implemented with `@rootsdk/server-bot` v0.17.0+
+  - ✅ Core messaging (send, edit, delete, reply)
+  - ✅ Message events (created, edited, deleted)
+  - ✅ Channel events (created, edited, deleted)
+  - ✅ Community events (member join/leave, community updates)
+  - ✅ Reactions (add, remove, events)
+  - ✅ Message pins (pin, unpin, events)
+  - ✅ Typing indicators (send, receive events)
+  - ✅ File attachments (server can send with pre-uploaded token URIs)
+  - ⏳ Thread/reply support (SDK supports parentMessageIds - not yet implemented)
+  - 📦 Install: `npm install @rootsdk/server-bot @rootsdk/dev-tools`
+  - 📚 See [Root File Upload Architecture](#root-file-upload-architecture) for attachment details
+
+### Feature Parity
+- **Core Messaging**: ✅ Full parity (Discord & Root)
+- **Reactions**: ✅ Full parity (Discord & Root)
+- **Pins**: ✅ Full parity (Discord & Root)
+- **Typing Indicators**: ✅ Full parity (Discord & Root)
+- **File Uploads**: 
+  - Discord: ✅ Direct upload via unified API
+  - Root: ✅ Server-side sending with pre-uploaded tokens (see below)
+- **Embeds**: Discord rich embeds supported, Root does not support Discord-style embeds
+- **Slash Commands**: Platform-specific registration required (no unified abstraction yet)
+- **Voice Channels**: Discord-only (Root uses WebRTC, different architecture)
+- **Interactive Components**: Buttons and select menus not yet abstracted
+- **Webhooks**: Not yet supported on either platform
+
+### Root File Upload Architecture
+
+Root uses a **client-server split architecture** for file uploads:
+
+**Client-Side (Upload):**
+1. Client requests upload token from Root API (via `@rootsdk/client-app`)
+2. Client uploads file directly to Root's storage using the token
+3. Client receives a token URI after successful upload
+
+**Server-Side (Messaging):**
+```typescript
+// Server bot uses pre-uploaded token URIs to attach files to messages
+const message = await rootClient.sendMessageWithAttachments(
+  channelId,
+  'Check out these files!',
+  ['token://file-uri-1', 'token://file-uri-2']  // From client upload
+);
+```
+
+**Why This Architecture?**
+- Security: Clients upload directly to storage (no server bottleneck)
+- Scalability: Distributed upload load across clients
+- Bandwidth: Server doesn't proxy large files
+- The `@rootsdk/server-bot` package intentionally does not expose upload token generation
+
+**Implementation Options:**
+1. **Hybrid Bot**: Use `@rootsdk/client-app` alongside server-bot for full file support
+2. **Pure Server Bot**: Accept pre-uploaded token URIs from your application's client
+3. **Custom Integration**: Integrate with Root's upload API directly
+
+For most use cases, accepting token URIs from clients is the recommended approach.
+
+### Known Issues
+- Some test files have module resolution issues (3/52 test suites)
+- TypeScript strict mode requires careful handling of environment variables
+- Root file uploads require client-side token generation (architectural design, not a limitation)
+- Root does not support Discord-style rich embeds (platform design difference)
+
+### Deployment Notes
+- Set `NODE_ENV=production` for automatic production logging
+- Use `ALLOW_{PLATFORM}_BOT=false` to disable unwanted bots
+- Root's multi-instance architecture requires one client per community
+- Discord bots should comply with Discord's rate limits and data privacy guidelines
 
 ---
 

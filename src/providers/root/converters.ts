@@ -1,8 +1,14 @@
 /**
  * Converters for translating between Root API objects and generic types
- * Note: This is a stub implementation. Update with actual Root API response structures.
+ * Using @rootsdk/server-bot v0.17.0+
  */
 
+import {
+  ChannelMessage,
+  CommunityMember,
+  Channel as RootChannel,
+  Community
+} from '@rootsdk/server-bot';
 import {
   Message,
   User,
@@ -11,69 +17,62 @@ import {
   Attachment,
   ChannelType
 } from '../../types/common';
-import { Embed, MessageOptions } from '../../types/embeds';
+import { MessageOptions } from '../../types/embeds';
 import type { RootProvider } from './provider';
-import {
-  RootMessage,
-  RootUser,
-  RootChannel,
-  RootCommunity,
-  RootAttachment,
-  RootEmbed
-} from './types';
 
 /**
- * Convert a Root message to a generic Message
+ * Convert a Root ChannelMessage to a generic Message
  */
-export function toGenericMessage(rootMsg: RootMessage, provider: RootProvider): Message {
+export function convertMessageToGeneric(rootMsg: ChannelMessage, provider: RootProvider): Message {
   const message: Message = {
     id: rootMsg.id,
-    content: rootMsg.content,
-    author: toGenericUser(rootMsg.author),
+    content: rootMsg.messageContent || '',
+    author: {
+      id: rootMsg.userId,
+      username: 'user', // Root SDK doesn't provide user info in message events
+      displayName: 'User',
+      bot: false,
+      platform: 'root'
+    },
     channel: {
       id: rootMsg.channelId,
-      name: 'Unknown',  // Would need to fetch channel details
+      name: 'Channel',
       type: 'text',
       platform: 'root'
     },
-    timestamp: new Date(rootMsg.timestamp),
+    timestamp: new Date(), // Root SDK doesn't provide createdAt in ChannelMessage
     platform: 'root',
-    embeds: rootMsg.embeds && rootMsg.embeds.length > 0 ? rootMsg.embeds.map(toGenericEmbed) : undefined,
-    attachments: rootMsg.attachments && rootMsg.attachments.length > 0
-      ? rootMsg.attachments.map(toGenericAttachment)
+    embeds: [],
+    attachments: rootMsg.messageUris && rootMsg.messageUris.length > 0
+      ? rootMsg.messageUris.map(uri => ({
+          id: uri.uri,
+          url: uri.uri,
+          filename: uri.attachment?.fileName || 'file',
+          size: Number(uri.attachment?.length || 0),
+          contentType: uri.attachment?.mimeType
+        } as Attachment))
       : undefined,
-    mentions: rootMsg.mentions && rootMsg.mentions.length > 0
-      ? rootMsg.mentions.map(userId => ({
-          id: userId,
-          username: 'user',
-          displayName: 'User',
-          bot: false,
-          platform: 'root'
-        } as User))
-      : undefined,
+    mentions: undefined,
     
     // Message methods
-    async reply(content: string | MessageOptions) {
-      // TODO: Implement Root reply logic
-      // This would use Root's API to send a reply
-      return provider.sendMessage(rootMsg.channelId, content);
+    async reply(content: string | MessageOptions): Promise<Message> {
+      return await provider.sendMessage(String(rootMsg.channelId), content);
     },
     
-    async delete() {
-      // TODO: Implement Root delete logic
-      await provider.deleteMessage(rootMsg.id, rootMsg.channelId);
+    async delete(): Promise<void> {
+      await provider.deleteMessage(String(rootMsg.id), String(rootMsg.channelId));
     },
     
-    async edit(content: string) {
-      // TODO: Implement Root edit logic
-      return provider.editMessage(rootMsg.id, rootMsg.channelId, content);
+    async edit(content: string): Promise<Message> {
+      return await provider.editMessage(String(rootMsg.id), String(rootMsg.channelId), content);
     },
     
-    async react(_emoji: string): Promise<void> {
-      // TODO: Implement Root reaction logic
-      // This would call Root's reaction API endpoint
-      console.warn('Reactions not yet implemented for Root platform');
-      return Promise.resolve();
+    async react(emoji: string): Promise<void> {
+      await provider.reactToMessage(
+        String(rootMsg.id), 
+        String(rootMsg.channelId), 
+        emoji
+      );
     }
   };
   
@@ -81,211 +80,116 @@ export function toGenericMessage(rootMsg: RootMessage, provider: RootProvider): 
 }
 
 /**
- * Convert a Root user to a generic User
+ * Convert a Root CommunityMember to a generic User
  */
-export function toGenericUser(rootUser: RootUser): User {
+export function convertUserToGeneric(member: CommunityMember): User {
   return {
-    id: rootUser.id,
-    username: rootUser.username,
-    displayName: rootUser.displayName || rootUser.username,
-    avatarUrl: rootUser.avatarUrl,
-    bot: rootUser.bot || false,
+    id: member.userId,
+    username: member.nickname,
+    displayName: member.nickname,
+    avatarUrl: member.profilePictureAssetUri,
+    bot: false, // Root SDK doesn't distinguish bots in member data
     platform: 'root'
   };
 }
 
 /**
- * Convert a Root channel to a generic Channel
+ * Convert a Root Channel to a generic Channel
  */
-export function toGenericChannel(rootChannel: RootChannel): Channel {
+export function convertChannelToGeneric(rootChannel: RootChannel): Channel {
   return {
     id: rootChannel.id,
     name: rootChannel.name,
-    type: convertChannelType(rootChannel.type),
+    type: convertChannelType(rootChannel.channelType),
     platform: 'root',
-    topic: rootChannel.topic
+    topic: rootChannel.description
   };
 }
 
 /**
  * Convert Root channel type to generic ChannelType
+ * 
+ * Root SDK ChannelType enum:
+ * - Unspecified = 0
+ * - Text = 1
+ * - ThreadedText = 2
  */
-function convertChannelType(type: string): ChannelType {
-  // Update these mappings based on actual Root channel types
-  switch (type.toLowerCase()) {
-    case 'text':
-    case 'chat':
+function convertChannelType(channelType: number): ChannelType {
+  switch (channelType) {
+    case 1: // Text
+    case 2: // ThreadedText
       return 'text';
-    case 'voice':
-      return 'voice';
-    case 'dm':
-    case 'direct':
-      return 'dm';
-    case 'group':
-      return 'group';
+    case 0: // Unspecified
     default:
       return 'text';
   }
 }
 
 /**
- * Convert a Root guild to a generic Guild
+ * Convert a Root Community to a generic Guild
  */
-export function toGenericGuild(rootCommunity: RootCommunity): Guild {
+export function convertGuildToGeneric(community: Community): Guild {
   return {
-    id: rootCommunity.id,
-    name: rootCommunity.name,
-    iconUrl: rootCommunity.iconUrl,
-    memberCount: rootCommunity.memberCount,
+    id: community.communityId,
+    name: community.name,
+    iconUrl: community.pictureAssetUri,
+    memberCount: undefined, // Root SDK doesn't provide member count in Community type
     platform: 'root',
-    description: rootCommunity.description,
-    ownerId: rootCommunity.ownerId
+    description: undefined, // Root SDK doesn't have description in Community
+    ownerId: community.ownerUserId
   };
-}
-
-/**
- * Convert a Root attachment to a generic Attachment
- */
-export function toGenericAttachment(rootAttachment: RootAttachment): Attachment {
-  return {
-    id: rootAttachment.id,
-    filename: rootAttachment.filename,
-    size: rootAttachment.size,
-    url: rootAttachment.url,
-    contentType: rootAttachment.contentType,
-    width: rootAttachment.width,
-    height: rootAttachment.height
-  };
-}
-
-/**
- * Convert a Root embed to a generic Embed
- */
-export function toGenericEmbed(rootEmbed: RootEmbed): Embed {
-  // TODO: Update based on actual Root embed structure
-  const embed: Embed = {};
-  
-  if (typeof rootEmbed.title === 'string') embed.title = rootEmbed.title;
-  if (typeof rootEmbed.description === 'string') embed.description = rootEmbed.description;
-  if (typeof rootEmbed.url === 'string') embed.url = rootEmbed.url;
-  if (typeof rootEmbed.color === 'number') embed.color = rootEmbed.color;
-  if (typeof rootEmbed.timestamp === 'string') embed.timestamp = new Date(rootEmbed.timestamp);
-  
-  if (Array.isArray(rootEmbed.fields) && rootEmbed.fields.length > 0) {
-    embed.fields = rootEmbed.fields.map((f) => ({
-      name: String(f.name),
-      value: String(f.value),
-      inline: Boolean(f.inline)
-    }));
-  }
-  
-  if (rootEmbed.footer) {
-    embed.footer = {
-      text: String(rootEmbed.footer.text),
-      iconUrl: typeof rootEmbed.footer.iconUrl === 'string' ? rootEmbed.footer.iconUrl : undefined
-    };
-  }
-  
-  if (rootEmbed.image) {
-    embed.image = {
-      url: String(rootEmbed.image.url),
-      width: typeof rootEmbed.image.width === 'number' ? rootEmbed.image.width : undefined,
-      height: typeof rootEmbed.image.height === 'number' ? rootEmbed.image.height : undefined
-    };
-  }
-  
-  if (rootEmbed.thumbnail) {
-    embed.thumbnail = {
-      url: String(rootEmbed.thumbnail.url),
-      width: typeof rootEmbed.thumbnail.width === 'number' ? rootEmbed.thumbnail.width : undefined,
-      height: typeof rootEmbed.thumbnail.height === 'number' ? rootEmbed.thumbnail.height : undefined
-    };
-  }
-  
-  if (rootEmbed.author) {
-    embed.author = {
-      name: String(rootEmbed.author.name),
-      iconUrl: typeof rootEmbed.author.iconUrl === 'string' ? rootEmbed.author.iconUrl : undefined,
-      url: typeof rootEmbed.author.url === 'string' ? rootEmbed.author.url : undefined
-    };
-  }
-  
-  return embed;
-}
-
-/**
- * Convert a generic Embed to Root embed format
- */
-export function toRootEmbed(embed: Embed): Record<string, unknown> {
-  // TODO: Update based on actual Root API requirements
-  const rootEmbed: Record<string, unknown> = {};
-  
-  if (embed.title) rootEmbed['title'] = embed.title;
-  if (embed.description) rootEmbed['description'] = embed.description;
-  if (embed.url) rootEmbed['url'] = embed.url;
-  if (embed.color) {
-    // Convert hex to number if needed
-    rootEmbed['color'] = typeof embed.color === 'string'
-      ? parseInt(embed.color.replace('#', ''), 16)
-      : embed.color;
-  }
-  
-  if (embed.fields && embed.fields.length > 0) {
-    rootEmbed['fields'] = embed.fields;
-  }
-  
-  if (embed.footer) {
-    rootEmbed['footer'] = {
-      text: embed.footer.text,
-      icon_url: embed.footer.iconUrl
-    };
-  }
-  
-  if (embed.image) {
-    rootEmbed['image'] = { url: embed.image.url };
-  }
-  
-  if (embed.thumbnail) {
-    rootEmbed['thumbnail'] = { url: embed.thumbnail.url };
-  }
-  
-  if (embed.author) {
-    rootEmbed['author'] = {
-      name: embed.author.name,
-      icon_url: embed.author.iconUrl,
-      url: embed.author.url
-    };
-  }
-  
-  if (embed.timestamp) {
-    rootEmbed['timestamp'] = embed.timestamp.toISOString();
-  }
-  
-  return rootEmbed;
 }
 
 /**
  * Convert generic MessageOptions to Root message format
+ * 
+ * NOTE: Root SDK file upload limitations:
+ * - Root uses a multi-step upload flow:
+ *   1. Client requests upload token from Root API (client-side operation)
+ *   2. Client uploads file to Root storage using token
+ *   3. Token URI is obtained after upload
+ *   4. Server uses attachmentTokenUris in message creation
+ * 
+ * The @rootsdk/server-bot package is designed for server-side bots and does not
+ * expose token generation APIs. File uploads must be initiated client-side through
+ * @rootsdk/client-app, or via custom integration with Root's upload API.
+ * 
+ * For server-side file attachment support, you would need to:
+ * - Use a client SDK to generate upload tokens
+ * - Upload files through Root's storage API
+ * - Pass the resulting token URIs to this function
+ * 
+ * - Embeds: Not supported (Root doesn't have Discord-style rich embeds)  
+ * - Replies: Supported via parentMessageIds (not yet implemented)
  */
-export function toRootMessageOptions(options: MessageOptions): Record<string, unknown> {
-  // TODO: Update based on actual Root API requirements
-  const rootOptions: Record<string, unknown> = {};
+export function toRootMessageOptions(options: MessageOptions): { 
+  content?: string;
+  attachmentTokenUris?: string[];
+} {
+  const rootOptions: {
+    content?: string;
+    attachmentTokenUris?: string[];
+  } = {};
   
   if (options.content) {
-    rootOptions['content'] = options.content;
+    rootOptions.content = options.content;
   }
   
-  if (options.embeds && options.embeds.length > 0) {
-    rootOptions['embeds'] = options.embeds.map(toRootEmbed);
-  }
-  
+  // File attachments require client-side upload token generation
+  // The server-bot SDK does not expose token generation APIs
   if (options.files && options.files.length > 0) {
-    rootOptions['attachments'] = options.files.map(file => ({
-      filename: file.name,
-      data: file.data,
-      description: file.description
-    }));
+    throw new Error(
+      'File attachments in Root require client-side upload token generation. ' +
+      'The @rootsdk/server-bot package does not expose upload token APIs. ' +
+      'Use @rootsdk/client-app for file uploads, or integrate with Root\'s upload API directly.'
+    );
+  }
+  
+  // Discord-style embeds are not supported by Root
+  if (options.embeds && options.embeds.length > 0) {
+    throw new Error('Rich embeds are not supported by Root platform');
   }
   
   return rootOptions;
 }
+
