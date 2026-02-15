@@ -423,8 +423,6 @@ MIT License - see [LICENSE](LICENSE) file for details
 ## 🗺️ Roadmap
 
 - [ ] Complete Root platform implementation
-- [ ] Add support for Slack
-- [ ] Add support for Telegram
 - [ ] Support for slash commands across platforms
 - [ ] Button and select menu components
 - [ ] File upload support
