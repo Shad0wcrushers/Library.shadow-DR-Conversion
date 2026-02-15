@@ -3,7 +3,7 @@
  * Using @rootsdk/server-bot v0.17.0+
  */
 
-import {
+import type {
   ChannelMessage,
   CommunityMember,
   Channel as RootChannel,

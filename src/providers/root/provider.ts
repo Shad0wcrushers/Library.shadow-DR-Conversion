@@ -3,10 +3,34 @@
  * Using @rootsdk/server-bot v0.17.0+
  */
 
-import { 
-  rootServer, 
-  RootServer, 
-  ChannelMessageEvent, 
+// Dynamic imports for optional @rootsdk/server-bot dependency
+type RootServerModule = typeof import('@rootsdk/server-bot');
+let rootServerModule: RootServerModule | null = null;
+
+function requireRootServerBot(): RootServerModule {
+  if (!rootServerModule) {
+    // Check if we're in a Node.js environment
+    if (typeof require === 'undefined') {
+      throw new Error(
+        'Root Bot provider requires Node.js environment. ' +
+        'For browser-based Root Apps, use platform: "root-app" instead.'
+      );
+    }
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      rootServerModule = require('@rootsdk/server-bot') as RootServerModule;
+    } catch (error) {
+      throw new Error(
+        'Root Bot provider requires @rootsdk/server-bot to be installed.\n' +
+        'Install it with: npm install @rootsdk/server-bot\n' +
+        'Or if you\'re building a Root App (client-side), use platform: "root-app" instead.'
+      );
+    }
+  }
+  return rootServerModule;
+}
+
+import type { 
   ChannelMessageCreatedEvent, 
   ChannelMessageEditedEvent, 
   ChannelMessageDeletedEvent,
@@ -15,14 +39,11 @@ import {
   ChannelMessagePinCreatedEvent,
   ChannelMessagePinDeletedEvent,
   ChannelMessageSetTypingIndicatorEvent,
-  ChannelEvent,
   ChannelCreatedEvent,
   ChannelEditedEvent,
   ChannelDeletedEvent,
-  CommunityMemberEvent,
   CommunityMemberAttachEvent,
   CommunityMemberDetachEvent,
-  CommunityEvent,
   CommunityEditedEvent,
   ChannelMessage,
   CommunityMember,
@@ -30,7 +51,9 @@ import {
   Community,
   ChannelGuid,
   MessageGuid,
-  UserGuid
+  UserGuid,
+  RootServer,
+  RootBotStartState
 } from '@rootsdk/server-bot';
 import { BaseProvider } from '../base';
 import { Message, User, Channel, Guild } from '../../types/common';
@@ -57,7 +80,8 @@ export class RootProvider extends BaseProvider {
     // Validate required config
     this.validateConfig('token');
     
-    // Use the Root server singleton
+    // Lazy-load @rootsdk/server-bot and use the Root server singleton
+    const { rootServer } = requireRootServerBot();
     this.client = rootServer;
     
     this.logger.info('Root provider initialized with @rootsdk/server-bot');
@@ -78,6 +102,14 @@ export class RootProvider extends BaseProvider {
    * Setup Root event listeners
    */
   private setupEventListeners(): void {
+    // Get event enums from the lazy-loaded module
+    const {
+      ChannelMessageEvent,
+      ChannelEvent,
+      CommunityMemberEvent,
+      CommunityEvent
+    } = requireRootServerBot();
+    
     // Message created event
     this.client.community.channelMessages.on(
       ChannelMessageEvent.ChannelMessageCreated,
@@ -324,8 +356,8 @@ export class RootProvider extends BaseProvider {
       this.logger.info('Connecting to Root...');
       
       // Start the Root bot lifecycle with callback to capture community ID
-      await this.client.lifecycle.start((startState) => {
-        this.connectedCommunityId = startState.communityId;
+      await this.client.lifecycle.start((startState: RootBotStartState) => {
+        this.connectedCommunityId = String(startState.communityId);
         this.logger.info(`Connected to Root community: ${this.connectedCommunityId}`);
         
         // Log community info

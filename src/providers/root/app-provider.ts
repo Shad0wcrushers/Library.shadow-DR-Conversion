@@ -14,9 +14,12 @@
  * - Asset URL conversion
  * - Download management
  * - App lifecycle control
+ * 
+ * Note: Root Apps run in browsers, so we use static imports (not dynamic require)
  */
 
-import { rootClient, RootClient } from '@rootsdk/client-app';
+import { rootClient } from '@rootsdk/client-app';
+import type { RootClient } from '@rootsdk/client-app';
 import { BaseProvider } from '../base';
 import { Message, User, Channel, Guild } from '../../types/common';
 import { MessageOptions } from '../../types/embeds';
@@ -40,7 +43,7 @@ export class RootAppProvider extends BaseProvider {
     super(configWithToken as PlatformConfig);
     this.initLogger();
     
-    // Use the Root client singleton
+    // Use the Root client singleton (static import for browser compatibility)
     this.client = rootClient;
     
     this.logger.info('Root App provider initialized with @rootsdk/client-app');

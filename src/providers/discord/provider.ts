@@ -2,7 +2,33 @@
  * Discord platform provider implementation
  */
 
-import { Client, Events, Message as DiscordMessage } from 'discord.js';
+// Dynamic imports for optional discord.js dependency
+type DiscordModule = typeof import('discord.js');
+let discordModule: DiscordModule | null = null;
+
+function requireDiscordJS(): DiscordModule {
+  if (!discordModule) {
+    // Check if we're in a Node.js environment
+    if (typeof require === 'undefined') {
+      throw new Error(
+        'Discord provider requires Node.js environment. ' +
+        'For browser-based Root Apps, use platform: "root-app" instead.'
+      );
+    }
+    try {
+      discordModule = require('discord.js');
+    } catch (error) {
+      throw new Error(
+        'Discord provider requires discord.js to be installed.\n' +
+        'Install it with: npm install discord.js\n' +
+        'Or if you\'re building for Root platform only, use platform: "root" or "root-app" instead.'
+      );
+    }
+  }
+  return discordModule!;
+}
+
+import type { Client, Message as DiscordMessage } from 'discord.js';
 import { BaseProvider } from '../base';
 import { Message, User, Channel, Guild } from '../../types/common';
 import { MessageOptions } from '../../types/embeds';
@@ -25,12 +51,13 @@ export class DiscordProvider extends BaseProvider {
     // Validate required config
     this.validateConfig('token');
     
-    // Create Discord client
+    // Lazy-load discord.js and create Discord client
+    const { Client: DiscordClient } = requireDiscordJS();
     const intents = config.intents || DEFAULT_INTENTS;
-    this.client = new Client({
+    this.client = new DiscordClient({
       intents,
       ...config.clientOptions
-    });
+    }) as any;
     
     // Setup event listeners
     this.setupEventListeners();
@@ -40,6 +67,8 @@ export class DiscordProvider extends BaseProvider {
    * Setup Discord event listeners and forward to generic events
    */
   private setupEventListeners(): void {
+    const { Events } = requireDiscordJS();
+    
     // Ready event
     this.client.on(Events.ClientReady, () => {
       this._isConnected = true;

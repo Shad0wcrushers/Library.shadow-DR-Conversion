@@ -2,7 +2,7 @@
  * Converters for translating between Discord.js objects and generic types
  */
 
-import {
+import type {
   Message as DiscordMessage,
   User as DiscordUser,
   Channel as DiscordChannel,
@@ -13,14 +13,38 @@ import {
   ChannelType as DiscordChannelType,
   ButtonBuilder,
   ButtonStyle,
-  ActionRowBuilder,
   StringSelectMenuBuilder,
+  ActionRowBuilder,
   Role as DiscordRole,
   MessageCreateOptions,
   Embed as DiscordEmbed,
   APIEmbed,
   APIEmbedField
 } from 'discord.js';
+
+// Define the shape of the discord.js module for lazy loading
+interface DiscordJSModule {
+  EmbedBuilder: typeof EmbedBuilder;
+  ButtonBuilder: typeof ButtonBuilder;
+  StringSelectMenuBuilder: typeof StringSelectMenuBuilder;
+  ActionRowBuilder: typeof ActionRowBuilder;
+  ButtonStyle: typeof ButtonStyle;
+  ChannelType: typeof DiscordChannelType;
+}
+
+// Helper to lazy-load discord.js when needed for instantiation
+function getDiscordJS(): DiscordJSModule {
+  // Check if we're in a Node.js environment
+  if (typeof require === 'undefined') {
+    throw new Error(
+      'Discord converters require Node.js environment. ' +
+      'For browser-based Root Apps, use platform: "root-app" instead.'
+    );
+  }
+  // This will only be called after the DiscordProvider has already loaded discord.js
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  return require('discord.js') as DiscordJSModule;
+}
 import {
   Message,
   User,
@@ -133,22 +157,24 @@ export function toGenericChannel(discordChannel: DiscordChannel): Channel {
  * Convert Discord channel type to generic ChannelType
  */
 function convertChannelType(type: DiscordChannelType): ChannelType {
+  const { ChannelType } = getDiscordJS();
+  
   switch (type) {
-    case DiscordChannelType.GuildText:
+    case ChannelType.GuildText:
       return 'text';
-    case DiscordChannelType.DM:
+    case ChannelType.DM:
       return 'dm';
-    case DiscordChannelType.GuildVoice:
+    case ChannelType.GuildVoice:
       return 'voice';
-    case DiscordChannelType.GroupDM:
+    case ChannelType.GroupDM:
       return 'group';
-    case DiscordChannelType.GuildCategory:
+    case ChannelType.GuildCategory:
       return 'category';
-    case DiscordChannelType.GuildAnnouncement:
+    case ChannelType.GuildAnnouncement:
       return 'announcement';
-    case DiscordChannelType.AnnouncementThread:
-    case DiscordChannelType.PublicThread:
-    case DiscordChannelType.PrivateThread:
+    case ChannelType.AnnouncementThread:
+    case ChannelType.PublicThread:
+    case ChannelType.PrivateThread:
       return 'thread';
     default:
       return 'text';
@@ -263,6 +289,7 @@ export function toGenericEmbed(discordEmbed: APIEmbed | DiscordEmbed): Embed {
  * Convert a generic Embed to a Discord EmbedBuilder
  */
 export function toDiscordEmbed(embed: Embed): EmbedBuilder {
+  const { EmbedBuilder } = getDiscordJS();
   const discordEmbed = new EmbedBuilder();
   
   if (embed.title) discordEmbed.setTitle(embed.title);
@@ -348,7 +375,9 @@ export function toDiscordMessageOptions(options: MessageOptions): MessageCreateO
  * Convert a generic ActionRow to Discord ActionRowBuilder
  */
 export function toDiscordActionRow(actionRow: ActionRow): ActionRowBuilder<ButtonBuilder | StringSelectMenuBuilder> {
-  const row = new ActionRowBuilder<ButtonBuilder | StringSelectMenuBuilder>();
+  const discord = getDiscordJS();
+  // Create properly typed ActionRowBuilder
+  const row: ActionRowBuilder<ButtonBuilder | StringSelectMenuBuilder> = new discord.ActionRowBuilder<ButtonBuilder | StringSelectMenuBuilder>();
   
   for (const component of actionRow.components) {
     if (component.type === 'button') {
@@ -365,6 +394,7 @@ export function toDiscordActionRow(actionRow: ActionRow): ActionRowBuilder<Butto
  * Convert a generic Button to Discord ButtonBuilder
  */
 export function toDiscordButton(button: Button): ButtonBuilder {
+  const { ButtonBuilder } = getDiscordJS();
   const discordButton = new ButtonBuilder()
     .setStyle(convertButtonStyle(button.style));
   
@@ -396,6 +426,8 @@ export function toDiscordButton(button: Button): ButtonBuilder {
  * Convert generic button style to Discord ButtonStyle
  */
 function convertButtonStyle(style: ButtonStyleString | ButtonStyleEnum): ButtonStyle {
+  const { ButtonStyle } = getDiscordJS();
+  
   if (typeof style === 'number') {
     return style;
   }
@@ -421,16 +453,18 @@ function convertButtonStyle(style: ButtonStyleString | ButtonStyleEnum): ButtonS
  * Exported for use in other converters
  */
 export function convertGenericButtonStyle(style: ButtonStyle): ButtonStyleString {
+  const { ButtonStyle: DiscordButtonStyle } = getDiscordJS();
+  
   switch (style) {
-    case ButtonStyle.Primary:
+    case DiscordButtonStyle.Primary:
       return 'primary';
-    case ButtonStyle.Secondary:
+    case DiscordButtonStyle.Secondary:
       return 'secondary';
-    case ButtonStyle.Success:
+    case DiscordButtonStyle.Success:
       return 'success';
-    case ButtonStyle.Danger:
+    case DiscordButtonStyle.Danger:
       return 'danger';
-    case ButtonStyle.Link:
+    case DiscordButtonStyle.Link:
       return 'link';
     default:
       return 'primary';
@@ -441,6 +475,7 @@ export function convertGenericButtonStyle(style: ButtonStyle): ButtonStyleString
  * Convert a generic SelectMenu to Discord StringSelectMenuBuilder
  */
 export function toDiscordSelectMenu(selectMenu: SelectMenu): StringSelectMenuBuilder {
+  const { StringSelectMenuBuilder } = getDiscordJS();
   const discordMenu = new StringSelectMenuBuilder()
     .setCustomId(selectMenu.customId)
     .setPlaceholder(selectMenu.placeholder || 'Select an option')

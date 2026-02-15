@@ -50,18 +50,26 @@
     "node": ">=16.0.0"
   },
   "peerDependencies": {
-    "discord.js": "^14.0.0"
+    "discord.js": "^14.0.0",
+    "@rootsdk/server-bot": "^0.17.0",
+    "@rootsdk/client-app": "^0.17.0"
   },
   "peerDependenciesMeta": {
     "discord.js": {
       "optional": true
+    },
+    "@rootsdk/server-bot": {
+      "optional": true
+    },
+    "@rootsdk/client-app": {
+      "optional": true
     }
   },
   "dependencies": {
-    "@rootsdk/server-bot": "^0.17.0",
     "events": "^3.3.0"
   },
   "devDependencies": {
+    "@rootsdk/server-bot": "^0.17.0",
     "@rootsdk/client-app": "^0.17.0",
     "@rootsdk/client-app-ui": "^0.17.0",
     "@rootsdk/dev-tools": "^0.17.0",

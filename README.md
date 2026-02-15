@@ -5,7 +5,7 @@
 [![npm version](https://badge.fury.io/js/library.dr-conversion.svg)](https://www.npmjs.com/package/library.dr-conversion)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-**Library.DR-Conversion** (v0.2.7) is a TypeScript library that provides a unified, platform-agnostic interface for building chat bots that work across multiple platforms like Discord, Root, and potentially others. Write your bot logic once, and deploy it anywhere!
+**Library.DR-Conversion** (v0.2.8) is a TypeScript library that provides a unified, platform-agnostic interface for building chat bots that work across multiple platforms like Discord, Root, and potentially others. Write your bot logic once, and deploy it anywhere!
 
 ## ✨ Features
 
@@ -35,6 +35,21 @@
 ```bash
 npm install library.dr-conversion
 ```
+
+**Platform-specific dependencies** (install only what you need):
+
+```bash
+# For Discord bots
+npm install discord.js
+
+# For Root Bots (server-side)
+npm install @rootsdk/server-bot
+
+# For Root Apps (client-side GUI)
+npm install @rootsdk/client-app
+```
+
+You only need to install the SDK for the platform(s) you're targeting. The library will show helpful error messages if a required dependency is missing.
 
 ### Basic Usage
 
@@ -229,6 +244,11 @@ await rootBot.connect();
 - **✅ NOW SUPPORTED**: Use `platform: 'root-app'` with this library!
 
 #### Building Root Apps with This Library
+
+**Prerequisites**: First install the Root client SDK:
+```bash
+npm install @rootsdk/client-app
+```
 
 You can now create Root Apps (client-side) using the same unified interface:
 
