@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Build script for Library@DR-Conversion-v0.1.0
+# Build script for Library@DR-Conversion
 # Ensures clean build and validates output
 
 set -e

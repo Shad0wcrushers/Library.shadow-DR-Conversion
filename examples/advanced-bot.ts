@@ -1,7 +1,7 @@
 /**
  * Advanced Bot Example
  * 
- * This example demonstrates advanced features of the Library@DR-Conversion-v0.1.0:
+ * This example demonstrates advanced features of the Library@DR-Conversion:
  * - Custom error handling
  * - Multiple event listeners
  * - Rich embeds with all features
@@ -217,7 +217,7 @@ async function handleAbout(message: Message): Promise<void> {
         { name: 'Features', value: '✅ Cross-platform\n✅ Type-safe\n✅ Extensible' }
       ],
       footer: {
-        text: 'github.com/Shadowcrushers/Library@DR-Conversion-v0.1.0'
+        text: 'Library@DR-Conversion v0.1.0'
       }
     }]
   });

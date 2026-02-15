@@ -1,17 +1,17 @@
 # API Quick Reference
 
-Quick reference guide for the Library@DR-Conversion-v0.1.0 API.
+Quick reference guide for the Library@DR-Conversion API.
 
 ## 🚀 Installation
 
 ```bash
-npm install Library@DR-Conversion-v0.1.0 discord.js
+npm install Library@DR-Conversion
 ```
 
 ## 📝 Basic Setup
 
 ```typescript
-import { UnifiedClient, LogLevel } from 'Library@DR-Conversion-v0.1.0';
+import { UnifiedClient, LogLevel } from 'Library@DR-Conversion';
 
 const client = new UnifiedClient({
   platform: 'discord', // or 'root'
@@ -399,7 +399,7 @@ import {
   RateLimitError,
   ConnectionError,
   ConfigurationError
-} from 'Library@DR-Conversion-v0.1.0';
+} from 'Library@DR-Conversion';
 ```
 
 ## 🪵 Logging
@@ -407,7 +407,7 @@ import {
 ### Setting Log Level
 
 ```typescript
-import { LogLevel } from 'Library@DR-Conversion-v0.1.0';
+import { LogLevel } from 'Library@DR-Conversion';
 
 // In constructor
 const client = new UnifiedClient({
@@ -433,7 +433,7 @@ client.setLogLevel(LogLevel.INFO);
 ### Accessing Platform-Specific Client
 
 ```typescript
-import { DiscordProvider } from 'Library@DR-Conversion-v0.1.0';
+import { DiscordProvider } from 'Library@DR-Conversion';
 
 const provider = client.getProvider() as DiscordProvider;
 const discordClient = provider.getClient();

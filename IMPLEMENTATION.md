@@ -1,10 +1,10 @@
 # Implementation Guide
 
-This document provides a comprehensive overview of the Library@DR-Conversion-v0.1.0 implementation and how to use, extend, and maintain it.
+This document provides a comprehensive overview of the Library@DR-Conversion implementation and how to use, extend, and maintain it.
 
 ## 🎯 Overview
 
-Library@DR-Conversion-v0.1.0 is a TypeScript library that provides a unified interface for building chat bots across multiple platforms. The architecture is designed around three core concepts:
+Library@DR-Conversion is a TypeScript library that provides a unified interface for building chat bots across multiple platforms. The architecture is designed around three core concepts:
 
 1. **Generic Types**: Platform-agnostic interfaces (Message, User, Channel, etc.)
 2. **Platform Providers**: Platform-specific implementations that adhere to a common interface
@@ -13,7 +13,7 @@ Library@DR-Conversion-v0.1.0 is a TypeScript library that provides a unified int
 ## 📁 Project Structure
 
 ```
-Library@DR-Conversion-v0.1.0/
+Library@DR-Conversion/
 ├── src/
 │   ├── client.ts                    # UnifiedClient - main entry point
 │   ├── index.ts                     # Public API exports

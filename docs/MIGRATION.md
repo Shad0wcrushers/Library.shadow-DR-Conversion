@@ -1,6 +1,6 @@
 # Migration Guide
 
-This guide helps you migrate between major versions of Library@DR-Conversion-v0.1.0.
+This guide helps you migrate between major versions of Library@DR-Conversion.
 
 ## Table of Contents
 
@@ -42,7 +42,7 @@ Potential breaking changes being considered:
 
 1. **Update package**:
    ```bash
-   npm install Library@DR-Conversion-v0.1.0@latest
+   npm install Library@DR-Conversion@latest
    ```
 
 2. **Fix TypeScript errors**: Address type conflicts

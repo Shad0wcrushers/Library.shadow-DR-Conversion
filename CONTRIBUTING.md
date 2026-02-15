@@ -1,6 +1,6 @@
 # Contributing to Chat Platform Bridge
 
-Thank you for your interest in contributing to Library@DR-Conversion-v0.1.0! This document provides guidelines and instructions for contributing.
+Thank you for your interest in contributing to Library@DR-Conversion! This document provides guidelines and instructions for contributing.
 
 ## 🎯 Ways to Contribute
 
@@ -355,7 +355,7 @@ By contributing, you agree that your contributions will be licensed under the MI
 
 ## 🙏 Thank You!
 
-Thank you for contributing to Library@DR-Conversion-v0.1.0! Your efforts help make multi-platform bot development easier for everyone.
+Thank you for contributing to Library@DR-Conversion! Your efforts help make multi-platform bot development easier for everyone.
 
 ## Questions?
 
