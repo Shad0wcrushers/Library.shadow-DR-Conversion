@@ -40,6 +40,8 @@ export interface RootConfig extends PlatformConfig {
   
   /** Enable debug logging */
   debug?: boolean;
+  /** Connection attempt timeout in milliseconds */
+  connectTimeout?: number;
 }
 
 /**
@@ -288,5 +290,6 @@ export const DEFAULT_ROOT_CONFIG: Partial<RootConfig> = {
   autoReconnect: true,
   reconnectDelay: 5000,
   maxReconnectAttempts: 5,
+  connectTimeout: 30000,
   debug: false,
 }

@@ -59,7 +59,7 @@ import { BaseProvider } from '../base';
 import { Message, User, Channel, Guild } from '../../types/common';
 import { MessageOptions } from '../../types/embeds';
 import * as Converters from './converters';
-import { RootConfig } from './types';
+import { RootConfig, DEFAULT_ROOT_CONFIG } from './types';
 import {
   AuthenticationError
 } from '../../utils/errors';
@@ -352,34 +352,79 @@ export class RootProvider extends BaseProvider {
    * Automatically detects the community this instance is connected to
    */
   async connect(): Promise<void> {
-    try {
-      this.logger.info('Connecting to Root...');
-      
-      // Start the Root bot lifecycle with callback to capture community ID
-      await this.client.lifecycle.start((startState: RootBotStartState) => {
-        this.connectedCommunityId = String(startState.communityId);
-        this.logger.info(`Connected to Root community: ${this.connectedCommunityId}`);
-        
-        // Log community info
-        if (startState.communityRoles) {
-          this.logger.debug(`Community has ${startState.communityRoles.size} roles`);
+    const sleep = (ms: number) => new Promise((res) => setTimeout(res, ms));
+
+    const maxAttempts = (this.config && (this.config as any).maxReconnectAttempts) ?? (DEFAULT_ROOT_CONFIG.maxReconnectAttempts ?? 5);
+    const reconnectDelay = (this.config && (this.config as any).reconnectDelay) ?? (DEFAULT_ROOT_CONFIG.reconnectDelay ?? 5000);
+    const connectTimeout = (this.config && (this.config as any).connectTimeout) ?? (DEFAULT_ROOT_CONFIG.connectTimeout ?? 30000);
+
+    this.logger.info('Connecting to Root...');
+
+    // Best-effort: apply token to the SDK if it exposes an API for it.
+    const token = (this.config && (this.config as any).token) || process.env['ROOT_TOKEN'];
+    if (token) {
+      try {
+        const sdkAny = this.client as any;
+        if (typeof sdkAny.setToken === 'function') {
+          sdkAny.setToken(token);
+          this.logger.debug('Applied token to Root SDK via setToken()');
+        } else if (sdkAny.auth && typeof sdkAny.auth.setToken === 'function') {
+          sdkAny.auth.setToken(token);
+          this.logger.debug('Applied token to Root SDK via auth.setToken()');
+        } else if (sdkAny.config && typeof sdkAny.config === 'object') {
+          sdkAny.config.token = token;
+          this.logger.debug('Applied token to Root SDK via client.config.token');
+        } else {
+          process.env['ROOT_TOKEN'] = token;
+          this.logger.debug('Set process.env.ROOT_TOKEN as fallback for Root SDK');
         }
-        if (startState.communityMembers) {
-          this.logger.debug(`Community has ${startState.communityMembers.size} members`);
+      } catch (err) {
+        this.logger.debug('Could not programmatically set token on Root SDK', err as Error);
+      }
+    } else {
+      this.logger.warn('No token found in config or environment for Root provider');
+    }
+
+    let lastError: Error | null = null;
+
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      try {
+        this.logger.info(`Root connect attempt ${attempt}/${maxAttempts} (timeout ${connectTimeout}ms)`);
+
+        // race lifecycle.start against a timeout
+        await Promise.race<any>([
+          this.client.lifecycle.start((startState: RootBotStartState) => {
+            this.connectedCommunityId = String(startState.communityId);
+            this.logger.info(`Connected to Root community: ${this.connectedCommunityId}`);
+            if (startState.communityRoles) this.logger.debug(`Community has ${startState.communityRoles.size} roles`);
+            if (startState.communityMembers) this.logger.debug(`Community has ${startState.communityMembers.size} members`);
+            return Promise.resolve();
+          }),
+          new Promise((_, reject) => setTimeout(() => reject(new Error('connect timeout')), connectTimeout))
+        ]);
+
+        this._isConnected = true;
+        this.emitGenericEvent('ready', { communityId: this.connectedCommunityId });
+        this.logger.info('Connected to Root successfully');
+        lastError = null;
+        break;
+      } catch (err) {
+        lastError = err as Error;
+        this.logger.warn(`Root connect attempt ${attempt} failed: ${(err as Error).message}`);
+        if (attempt < maxAttempts) {
+          this.logger.info(`Retrying in ${reconnectDelay}ms...`);
+          await sleep(reconnectDelay);
         }
-        
-        return Promise.resolve();
-      });
-      
-      this._isConnected = true;
-      
-      // Emit ready event with community context
-      this.emitGenericEvent('ready', { communityId: this.connectedCommunityId });
-      
-      this.logger.info('Connected to Root successfully');
-    } catch (error) {
-      this._isConnected = false;
-      throw new AuthenticationError('root', (error as Error).message);
+      }
+    }
+
+    if (!this._isConnected) {
+      const orig = lastError ? (lastError.message || String(lastError)) : 'unknown error';
+      const hint = `Failed to connect after ${maxAttempts} attempts: ${orig}.\n` +
+        `Hints: ensure your token is correct and provided in the provider config or environment (ROOT_TOKEN), ` +
+        `verify network connectivity to Root services, and ensure @rootsdk/server-bot is installed and up-to-date.`;
+      this.logger.error(hint);
+      throw new AuthenticationError('root', hint);
     }
   }
   
