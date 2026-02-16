@@ -49,6 +49,53 @@ function detectPlatform() {
   }
 }
 
+// Validate a root manifest object against minimal Root requirements
+function validateManifestObject(manifest) {
+  const errors = [];
+  if (!manifest || typeof manifest !== 'object') {
+    errors.push('Manifest must be a JSON object');
+    return { valid: false, errors };
+  }
+
+  if (!manifest.id || typeof manifest.id !== 'string') {
+    errors.push('Missing or invalid "id" (string)');
+  }
+
+  if (!manifest.version || typeof manifest.version !== 'string') {
+    errors.push('Missing or invalid "version" (string)');
+  }
+
+  if (!manifest.package || typeof manifest.package !== 'object') {
+    errors.push('Missing "package" object');
+  } else {
+    if (manifest.package.server) {
+      const server = manifest.package.server;
+      if (!server.launch || typeof server.launch !== 'string') {
+        errors.push('package.server.launch is required and must be a string');
+      }
+      if (!Array.isArray(server.deploy) || server.deploy.length === 0) {
+        errors.push('package.server.deploy must be a non-empty array');
+      }
+      if (!Array.isArray(server.node_modules) || server.node_modules.length === 0) {
+        errors.push('package.server.node_modules must be a non-empty array');
+      }
+    }
+
+    if (manifest.package.client) {
+      const client = manifest.package.client;
+      // accept either entry or deploy
+      if (!client.entry && (!Array.isArray(client.deploy) || client.deploy.length === 0)) {
+        errors.push('package.client.entry or package.client.deploy is required');
+      }
+      if (client.assets && !Array.isArray(client.assets)) {
+        errors.push('package.client.assets must be an array if provided');
+      }
+    }
+  }
+
+  return { valid: errors.length === 0, errors };
+}
+
 program
   .name('library.dr-conversion')
   .description('CLI tools for Library.DR-Conversion v0.2.9')
@@ -279,6 +326,62 @@ npx @rootsdk/cli publish
       fs.writeFileSync(path.join(projectDir, 'MANIFEST.md'), manifestReadme);
     }
     
+    // Create root-app-manifest.json for Root Apps (client-side)
+    if (options.platform === 'root-app') {
+      const appManifest = {
+        id: generateUUID(),
+        version: '1.0.0',
+        name: options.name,
+        description: `${options.name} - Root App`,
+        author: '',
+        homepage: '',
+        package: {
+          client: {
+            entry: 'dist/index.html',
+            assets: ['dist'],
+            node_modules: ['node_modules']
+          }
+        },
+        settings: {
+          ui: []
+        },
+        permissions: {
+          channel: {
+            CreateMessage: true,
+            ReadMessage: true
+          }
+        }
+      };
+
+      fs.writeFileSync(
+        path.join(projectDir, 'root-manifest.json'),
+        JSON.stringify(appManifest, null, 2)
+      );
+
+      const appManifestReadme = `# Root App Manifest
+
+This project includes a generated root-manifest.json to help document your app.
+
+This manifest follows the Root App manifest overview and provides the basic fields used by the Root platform:
+- 'id': Unique UUID for the app
+- 'version': Semver version
+- 'package.client.entry': The client entry HTML for the app
+- 'package.client.assets': Client assets to include in the upload
+- 'permissions': Channel-level permissions used by the app
+
+Notes:
+- Update 'version' following semantic versioning when you make changes.
+- Review permissions and remove any that aren't needed.
+- Configure UI settings in the 'settings.ui' array (see Root docs for details):
+  https://docs.rootapp.com/docs/app-docs/configure/manifest-overview/
+
+Deployment:
+Build your app and follow the Root platform instructions to upload or register it.
+`;
+
+      fs.writeFileSync(path.join(projectDir, 'MANIFEST.md'), appManifestReadme);
+    }
+    
     console.log(`✅ Created ${options.name}`);
     console.log(`\n📝 Next steps:`);
     console.log(`  cd ${options.name}`);
@@ -325,6 +428,43 @@ program
   });
 
 program
+  .command('validate-manifest')
+  .description('Validate root-manifest.json in the current folder')
+  .option('-f, --file <path>', 'Manifest file path', 'root-manifest.json')
+  .action((options) => {
+    const file = options.file || 'root-manifest.json';
+    if (!fs.existsSync(file)) {
+      console.error(`❌ Manifest not found: ${file}`);
+      process.exit(1);
+    }
+
+    let raw;
+    try {
+      raw = fs.readFileSync(file, 'utf8');
+    } catch (err) {
+      console.error('❌ Failed to read manifest:', err.message);
+      process.exit(1);
+    }
+
+    let manifest;
+    try {
+      manifest = JSON.parse(raw);
+    } catch (err) {
+      console.error('❌ Manifest is not valid JSON:', err.message);
+      process.exit(1);
+    }
+
+    const result = validateManifestObject(manifest);
+    if (!result.valid) {
+      console.error('❌ Manifest validation failed:');
+      for (const e of result.errors) console.error(' -', e);
+      process.exit(1);
+    }
+
+    console.log('✅ Manifest is valid');
+  });
+
+program
   .command('generate-manifest')
   .description('Generate a manifest file for Root Bots or Root Apps (auto-detects platform)')
   .option('-i, --interactive', 'Interactive mode with prompts')
@@ -341,7 +481,7 @@ program
     }
     
     const isRootBot = platform === 'root';
-    const manifestFile = isRootBot ? 'root-manifest.json' : 'root-app-manifest.json';
+    const manifestFile = 'root-manifest.json';
     
     console.log(`\n🔍 Detected platform: ${isRootBot ? 'Root Bot (server-side)' : 'Root App (client-side)'}`);
     
@@ -385,6 +525,16 @@ program
         description: '',
         author: '',
         homepage: '',
+        package: {
+          client: {
+            entry: 'dist/index.html',
+            assets: ['dist'],
+            node_modules: ['node_modules']
+          }
+        },
+        settings: {
+          ui: []
+        },
         permissions: {
           channel: {}
         }
@@ -517,6 +667,45 @@ program
       console.log('   3. Deploy through Root platform interface');
     }
     console.log('');
+  });
+
+program
+  .command('publish')
+  .description('Validate and publish the current root-manifest.json using @rootsdk/cli')
+  .option('-f, --file <path>', 'Manifest file to publish', 'root-manifest.json')
+  .option('--no-validate', 'Skip manifest validation step')
+  .action((options) => {
+    const file = options.file || 'root-manifest.json';
+    if (!fs.existsSync(file)) {
+      console.error(`❌ Manifest not found: ${file}`);
+      process.exit(1);
+    }
+
+    if (options.validate !== false) {
+      let manifest;
+      try {
+        manifest = JSON.parse(fs.readFileSync(file, 'utf8'));
+      } catch (err) {
+        console.error('❌ Failed to parse manifest:', err.message);
+        process.exit(1);
+      }
+
+      const result = validateManifestObject(manifest);
+      if (!result.valid) {
+        console.error('❌ Manifest validation failed:');
+        for (const e of result.errors) console.error(' -', e);
+        process.exit(1);
+      }
+      console.log('✅ Manifest validation passed');
+    }
+
+    try {
+      console.log('🔁 Running publish via @rootsdk/cli...');
+      execSync('npx @rootsdk/cli publish', { stdio: 'inherit' });
+    } catch (err) {
+      console.error('❌ Publish failed:', err.message);
+      process.exit(1);
+    }
   });
 
 program
