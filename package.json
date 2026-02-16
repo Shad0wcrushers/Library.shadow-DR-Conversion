@@ -18,8 +18,8 @@
     "clean": "rimraf dist dist-examples coverage",
     "typecheck": "tsc --noEmit",
     "dev": "tsc --watch",
-    "setup": "node cli.js setup",
-    "generate-manifest": "node cli.js generate-manifest",
+    "setup": "node dist/cli.js setup",
+    "generate-manifest": "node dist/cli.js generate-manifest",
     "example:simple": "ts-node examples/simple-bot.ts",
     "example:discord": "ts-node examples/discord-bot.ts",
     "example:root": "ts-node examples/root-bot.ts",
@@ -99,6 +99,6 @@
     "CHANGELOG.md"
   ],
   "bin": {
-    "library.dr-conversion": "cli.js"
+    "library.dr-conversion": "dist/cli.js"
   }
 }

@@ -58,7 +58,7 @@ export class DiscordProvider extends BaseProvider {
     this.client = new DiscordClient({
       intents,
       ...config.clientOptions
-    }) as Client;
+    });
     
     // Setup event listeners
     this.setupEventListeners();
