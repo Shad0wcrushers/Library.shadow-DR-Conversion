@@ -1,6 +1,6 @@
 {
   "name": "library.dr-conversion",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "Unified interface for building multi-platform chat bots (Discord, Root, and more)",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
