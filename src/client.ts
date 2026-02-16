@@ -13,10 +13,10 @@ import {
   Guild,
   MessageOptions
 } from './types';
-import { DiscordProvider } from './providers/discord/provider';
+import type { DiscordProvider } from './providers/discord/provider';
 import { DiscordConfig } from './providers/discord/types';
-import { RootProvider } from './providers/root/provider';
-import { RootAppProvider } from './providers/root/app-provider';
+import type { RootProvider } from './providers/root/provider';
+import type { RootAppProvider } from './providers/root/app-provider';
 import { RootConfig, RootAppConfig } from './providers/root/types';
 import { UnsupportedPlatformError } from './utils/errors';
 import { Logger, getLogger, LogLevel } from './utils/logger';
@@ -88,16 +88,23 @@ export class UnifiedClient extends EventEmitter {
   private createProvider(platform: PlatformType, config: DiscordConfig | RootConfig | RootAppConfig): PlatformProvider {
     switch (platform.toLowerCase()) {
       case 'discord':
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call
-        return new DiscordProvider(config as DiscordConfig);
-      
+        // Lazy-load to avoid forcing optional peer dependencies at module import time
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
+        const { DiscordProvider: _DiscordProvider } = require('./providers/discord/provider') as { DiscordProvider: typeof DiscordProvider };
+        return new _DiscordProvider(config as DiscordConfig);
+
       case 'root':
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call
-        return new RootProvider(config as RootConfig);
-      
+        // Lazy-load Root server provider
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
+        const { RootProvider: _RootProvider } = require('./providers/root/provider') as { RootProvider: typeof RootProvider };
+        return new _RootProvider(config as RootConfig);
+
       case 'root-app':
-        return new RootAppProvider(config as RootAppConfig);
-      
+        // Lazy-load Root App provider (client-side SDK) to avoid requiring it in Node projects
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
+        const { RootAppProvider: _RootAppProvider } = require('./providers/root/app-provider') as { RootAppProvider: typeof RootAppProvider };
+        return new _RootAppProvider(config as RootAppConfig);
+
       default:
         throw new UnsupportedPlatformError(platform);
     }

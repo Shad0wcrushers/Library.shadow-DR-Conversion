@@ -18,7 +18,6 @@
  * Note: Root Apps run in browsers, so we use static imports (not dynamic require)
  */
 
-import { rootClient } from '@rootsdk/client-app';
 import type { RootClient } from '@rootsdk/client-app';
 import { BaseProvider } from '../base';
 import { Message, User, Channel, Guild } from '../../types/common';
@@ -43,8 +42,23 @@ export class RootAppProvider extends BaseProvider {
     super(configWithToken as PlatformConfig);
     this.initLogger();
     
-    // Use the Root client singleton (static import for browser compatibility)
-    this.client = rootClient;
+    // Resolve the Root client at runtime. We avoid a top-level static import
+    // so Node projects that don't include @rootsdk/client-app won't fail during import.
+    let clientModule: any = null;
+    if (typeof require !== 'undefined') {
+      try {
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
+        clientModule = require('@rootsdk/client-app');
+      } catch (err) {
+        clientModule = null;
+      }
+    }
+
+    if (!clientModule || !clientModule.rootClient) {
+      throw new Error('Root App provider requires @rootsdk/client-app at runtime. Install it for client-side usage.');
+    }
+
+    this.client = clientModule.rootClient as RootClient;
     
     this.logger.info('Root App provider initialized with @rootsdk/client-app');
     this.logger.info('Note: This is for client-side Root Apps. For server-side bots, use platform: "root"');
