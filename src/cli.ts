@@ -16,7 +16,6 @@ import * as crypto from 'crypto';
 // Generate a UUID v4
 function generateUUID(): string {
   // crypto.randomUUID is available in Node >= 14.17
-  // @ts-expect-error - may not be present in some TS lib defs
   return crypto.randomUUID();
 }
 
