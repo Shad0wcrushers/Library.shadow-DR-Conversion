@@ -13,7 +13,7 @@ export enum LogLevel {
 export class Logger {
   private static instance: Logger;
   private level: LogLevel = LogLevel.INFO;
-  private prefix: string = '[ChatPlatformBridge]';
+  private prefix: string = '[library.dr-conversion]';
   
   private constructor() {
     // Auto-detect production environment and adjust log level
