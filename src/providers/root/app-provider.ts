@@ -44,21 +44,22 @@ export class RootAppProvider extends BaseProvider {
     
     // Resolve the Root client at runtime. We avoid a top-level static import
     // so Node projects that don't include @rootsdk/client-app won't fail during import.
-    let clientModule: any = null;
+    let clientModule: unknown = null;
     if (typeof require !== 'undefined') {
       try {
         // eslint-disable-next-line @typescript-eslint/no-var-requires
-        clientModule = require('@rootsdk/client-app');
+        clientModule = require('@rootsdk/client-app') as { rootClient?: RootClient };
       } catch (err) {
         clientModule = null;
       }
     }
 
-    if (!clientModule || !clientModule.rootClient) {
+    const maybe = clientModule as { rootClient?: RootClient } | null;
+    if (!maybe || !maybe.rootClient) {
       throw new Error('Root App provider requires @rootsdk/client-app at runtime. Install it for client-side usage.');
     }
 
-    this.client = clientModule.rootClient as RootClient;
+    this.client = maybe.rootClient;
     
     this.logger.info('Root App provider initialized with @rootsdk/client-app');
     this.logger.info('Note: This is for client-side Root Apps. For server-side bots, use platform: "root"');

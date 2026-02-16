@@ -354,25 +354,33 @@ export class RootProvider extends BaseProvider {
   async connect(): Promise<void> {
     const sleep = (ms: number) => new Promise((res) => setTimeout(res, ms));
 
-    const maxAttempts = (this.config && (this.config as any).maxReconnectAttempts) ?? (DEFAULT_ROOT_CONFIG.maxReconnectAttempts ?? 5);
-    const reconnectDelay = (this.config && (this.config as any).reconnectDelay) ?? (DEFAULT_ROOT_CONFIG.reconnectDelay ?? 5000);
-    const connectTimeout = (this.config && (this.config as any).connectTimeout) ?? (DEFAULT_ROOT_CONFIG.connectTimeout ?? 30000);
+    // Narrow config to RootConfig to avoid unsafe-any linting
+    const cfg = (this.config as RootConfig) || ({} as RootConfig);
+    const maxAttempts = (cfg.maxReconnectAttempts ?? DEFAULT_ROOT_CONFIG.maxReconnectAttempts ?? 5);
+    const reconnectDelay = (cfg.reconnectDelay ?? DEFAULT_ROOT_CONFIG.reconnectDelay ?? 5000);
+    const connectTimeout = (cfg.connectTimeout ?? DEFAULT_ROOT_CONFIG.connectTimeout ?? 30000);
 
     this.logger.info('Connecting to Root...');
 
     // Best-effort: apply token to the SDK if it exposes an API for it.
-    const token = (this.config && (this.config as any).token) || process.env['ROOT_TOKEN'];
+    const token = cfg.token || process.env['ROOT_TOKEN'];
     if (token) {
       try {
-        const sdkAny = this.client as any;
-        if (typeof sdkAny.setToken === 'function') {
-          sdkAny.setToken(token);
+        type TokenSetter = {
+          setToken?: (t: string) => void;
+          auth?: { setToken?: (t: string) => void };
+          config?: { token?: string };
+        };
+
+        const sdkLike = this.client as unknown as TokenSetter;
+        if (typeof sdkLike.setToken === 'function') {
+          sdkLike.setToken(token);
           this.logger.debug('Applied token to Root SDK via setToken()');
-        } else if (sdkAny.auth && typeof sdkAny.auth.setToken === 'function') {
-          sdkAny.auth.setToken(token);
+        } else if (sdkLike.auth && typeof sdkLike.auth.setToken === 'function') {
+          sdkLike.auth.setToken(token);
           this.logger.debug('Applied token to Root SDK via auth.setToken()');
-        } else if (sdkAny.config && typeof sdkAny.config === 'object') {
-          sdkAny.config.token = token;
+        } else if (sdkLike.config && typeof sdkLike.config === 'object') {
+          sdkLike.config.token = token;
           this.logger.debug('Applied token to Root SDK via client.config.token');
         } else {
           process.env['ROOT_TOKEN'] = token;
@@ -392,7 +400,7 @@ export class RootProvider extends BaseProvider {
         this.logger.info(`Root connect attempt ${attempt}/${maxAttempts} (timeout ${connectTimeout}ms)`);
 
         // race lifecycle.start against a timeout
-        await Promise.race<any>([
+        await Promise.race<void>([
           this.client.lifecycle.start((startState: RootBotStartState) => {
             this.connectedCommunityId = String(startState.communityId);
             this.logger.info(`Connected to Root community: ${this.connectedCommunityId}`);
