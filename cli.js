@@ -487,10 +487,9 @@ program
     
     // Check if manifest already exists
     if (fs.existsSync(manifestFile)) {
-      console.log(`⚠️  ${manifestFile} already exists in this directory.`);
-      if (!options.interactive) {
-        console.log('Use --interactive to configure a new one anyway.');
-        return;
+      console.log(`⚠️  ${manifestFile} already exists — it will be overwritten.`);
+      if (options.interactive) {
+        console.log('Interactive mode will update fields and overwrite the manifest.');
       }
     }
     
@@ -633,13 +632,21 @@ program
       rl.close();
     }
     
-    // Write manifest file
+    // Write manifest file (overwrite if exists)
     fs.writeFileSync(
       manifestFile,
       JSON.stringify(manifest, null, 2)
     );
-    
-    console.log(`\n✅ Generated ${manifestFile} successfully!\n`);
+
+    // Validate generated manifest
+    const validation = validateManifestObject(manifest);
+    if (!validation.valid) {
+      console.error('\n❌ Generated manifest failed validation:');
+      for (const e of validation.errors) console.error(' -', e);
+      process.exit(1);
+    }
+
+    console.log(`\n✅ Generated and validated ${manifestFile} successfully!\n`);
     console.log('📋 Manifest Details:');
     console.log(`   Platform: ${isRootBot ? 'Root Bot (server-side)' : 'Root App (client-side)'}`);
     console.log(`   ID: ${manifest.id}`);
