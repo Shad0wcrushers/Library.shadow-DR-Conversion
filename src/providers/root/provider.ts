@@ -360,7 +360,23 @@ export class RootProvider extends BaseProvider {
     const reconnectDelay = (cfg.reconnectDelay ?? DEFAULT_ROOT_CONFIG.reconnectDelay ?? 5000);
     const connectTimeout = (cfg.connectTimeout ?? DEFAULT_ROOT_CONFIG.connectTimeout ?? 30000);
 
-    this.logger.info('Connecting to Root...');
+    // Determine target host/port for diagnostics. Prefer explicit wsUrl, then env, then defaults.
+    let targetHost = '127.0.0.1';
+    let targetPort = 8090;
+    try {
+      if (cfg.wsUrl) {
+        const u = new URL(cfg.wsUrl);
+        targetHost = u.hostname || targetHost;
+        targetPort = Number(u.port) || (u.protocol === 'wss:' ? 443 : 80) || targetPort;
+      } else if (process.env['ROOT_HOST'] || process.env['ROOT_PORT']) {
+        if (process.env['ROOT_HOST']) targetHost = process.env['ROOT_HOST'];
+        if (process.env['ROOT_PORT']) targetPort = Number(process.env['ROOT_PORT']) || targetPort;
+      }
+    } catch (err) {
+      this.logger.debug('Could not parse cfg.wsUrl for host/port, using defaults', err as Error);
+    }
+
+    this.logger.info(`Connecting to Root... (host=${targetHost}, port=${targetPort})`);
 
     // Best-effort: apply token to the SDK if it exposes an API for it.
     const token = cfg.token || process.env['ROOT_TOKEN'];
@@ -393,11 +409,44 @@ export class RootProvider extends BaseProvider {
       this.logger.warn('No token found in config or environment for Root provider');
     }
 
+    // Optional quick TCP health-check to provide clearer errors earlier
+    const tcpCheck = async (host: string, port: number, timeout = 2000): Promise<boolean> => {
+      // Delay importing `net` until runtime to keep safe for non-Node environments
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const net = require('net') as typeof import('net');
+      return new Promise<boolean>((resolve) => {
+        const socket = new net.Socket();
+        let done = false;
+        const onDone = (ok: boolean) => {
+          if (done) return;
+          done = true;
+          try { socket.destroy(); } catch (e) { void e; }
+          resolve(ok);
+        };
+
+        socket.setTimeout(timeout);
+        socket.once('error', () => onDone(false));
+        socket.once('timeout', () => onDone(false));
+        socket.connect(port, host, () => onDone(true));
+      });
+    };
+
     let lastError: Error | null = null;
+    // run health-check and log result to assist diagnostics
+    try {
+      const tcpOk = await tcpCheck(targetHost, targetPort, 1500);
+      if (!tcpOk) {
+        this.logger.warn(`TCP health-check failed for ${targetHost}:${targetPort} — connection refused or filtered`);
+      } else {
+        this.logger.debug(`TCP health-check succeeded for ${targetHost}:${targetPort}`);
+      }
+    } catch (err) {
+      this.logger.debug('TCP health-check errored', err as Error);
+    }
 
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
       try {
-        this.logger.info(`Root connect attempt ${attempt}/${maxAttempts} (timeout ${connectTimeout}ms)`);
+        this.logger.info(`Root connect attempt ${attempt}/${maxAttempts} (timeout ${connectTimeout}ms) -> ${targetHost}:${targetPort}`);
 
         // race lifecycle.start against a timeout
         await Promise.race<void>([
@@ -418,7 +467,8 @@ export class RootProvider extends BaseProvider {
         break;
       } catch (err) {
         lastError = err as Error;
-        this.logger.warn(`Root connect attempt ${attempt} failed: ${(err as Error).message}`);
+        const origMsg = (err as Error).message || String(err);
+        this.logger.warn(`Root connect attempt ${attempt} failed: ${origMsg}`);
         if (attempt < maxAttempts) {
           this.logger.info(`Retrying in ${reconnectDelay}ms...`);
           await sleep(reconnectDelay);
@@ -428,9 +478,10 @@ export class RootProvider extends BaseProvider {
 
     if (!this._isConnected) {
       const orig = lastError ? (lastError.message || String(lastError)) : 'unknown error';
-      const hint = `Failed to connect after ${maxAttempts} attempts: ${orig}.\n` +
-        `Hints: ensure your token is correct and provided in the provider config or environment (ROOT_TOKEN), ` +
-        `verify network connectivity to Root services, and ensure @rootsdk/server-bot is installed and up-to-date.`;
+        const hint = `Failed to connect after ${maxAttempts} attempts: ${orig}.
+  Detected target: ${targetHost}:${targetPort}
+  Hints: ensure your token is correct and provided in the provider config or environment (ROOT_TOKEN),
+  set ROOT_HOST and ROOT_PORT or use config.wsUrl to point to the correct gateway, verify network/firewall connectivity to the target, and ensure @rootsdk/server-bot is installed and up-to-date.`;
       this.logger.error(hint);
       throw new AuthenticationError('root', hint);
     }
